@@ -27,6 +27,10 @@ enum SonosService {
   deviceProperties(
     controlPath: '/DeviceProperties/Control',
     serviceType: 'urn:schemas-upnp-org:service:DeviceProperties:1',
+  ),
+  contentDirectory(
+    controlPath: '/MediaServer/ContentDirectory/Control',
+    serviceType: 'urn:schemas-upnp-org:service:ContentDirectory:1',
   );
 
   const SonosService({required this.controlPath, required this.serviceType});

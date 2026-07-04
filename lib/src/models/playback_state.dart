@@ -1,3 +1,5 @@
+import 'play_mode.dart';
+
 /// High-level transport state of a group's coordinator.
 enum TransportState {
   playing,
@@ -38,6 +40,7 @@ class PlaybackState {
     this.duration = Duration.zero,
     this.volume = 0,
     this.muted = false,
+    this.playMode = const PlayMode(),
   });
 
   final TransportState transport;
@@ -54,6 +57,9 @@ class PlaybackState {
   /// Group volume, 0–100.
   final int volume;
   final bool muted;
+
+  /// Shuffle / repeat state of the group's queue.
+  final PlayMode playMode;
 
   bool get hasTrack => (title != null && title!.isNotEmpty);
 
@@ -72,6 +78,7 @@ class PlaybackState {
     Duration? duration,
     int? volume,
     bool? muted,
+    PlayMode? playMode,
   }) {
     return PlaybackState(
       transport: transport ?? this.transport,
@@ -83,6 +90,7 @@ class PlaybackState {
       duration: duration ?? this.duration,
       volume: volume ?? this.volume,
       muted: muted ?? this.muted,
+      playMode: playMode ?? this.playMode,
     );
   }
 }

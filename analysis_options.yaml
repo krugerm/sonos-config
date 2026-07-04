@@ -1,0 +1,12 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    prefer_single_quotes: true
+    avoid_print: false
+    use_key_in_widget_constructors: true
+
+analyzer:
+  errors:
+    # Keep the build green on generated/platform noise while staying strict on real code.
+    todo: ignore

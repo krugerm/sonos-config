@@ -129,10 +129,27 @@ class SsdpDiscovery {
 
   Future<String?> _localIp() async {
     try {
-      return await NetworkInfo().getWifiIP();
+      final wifi = await NetworkInfo().getWifiIP();
+      if (wifi != null && wifi.isNotEmpty) return wifi;
     } catch (_) {
-      return null;
+      // Fall through to interface enumeration.
     }
+    // Wi-Fi IP is null on a wired connection; fall back to the first
+    // non-loopback IPv4 address so the unicast scan still has a subnet.
+    try {
+      final interfaces = await NetworkInterface.list(
+        type: InternetAddressType.IPv4,
+        includeLoopback: false,
+      );
+      for (final iface in interfaces) {
+        for (final addr in iface.addresses) {
+          if (!addr.isLoopback) return addr.address;
+        }
+      }
+    } catch (_) {
+      // No usable interface; caller handles the empty result.
+    }
+    return null;
   }
 
   void close() => _http.close();

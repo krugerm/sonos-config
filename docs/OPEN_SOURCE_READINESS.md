@@ -15,7 +15,7 @@ nice-to-have. Items reference concrete gaps in the current codebase.
 - [x] **Scrub real device identifiers.** Verified: test fixtures and design docs
       use anonymized IDs (`RINCON_BEAM`, `RINCON_SUB`, …), not real device
       serials. Keep it that way when adding fixtures.
-- [ ] **Finalize naming.** The Dart package is still `personal_sonos`, the app
+- [x] **Display name unified** to "Sonos Config" across iOS/macOS/Android (internal package/product IDs left stable). Choosing a distinct public/store brand name remains an optional maintainer decision. The Dart package is still `personal_sonos`, the app
       title is "Sonos Config", and the macOS bundle id is
       `com.personalsonos.personalSonos`. Pick one public name and make package
       name, display names (macOS/iOS/Android), and bundle/application IDs
@@ -32,7 +32,7 @@ nice-to-have. Items reference concrete gaps in the current codebase.
       already ignored.
 
 ### CI
-- [ ] **Add GitHub Actions** running `flutter analyze` + `flutter test` on every
+- [x] **GitHub Actions** run dart-format + `flutter analyze` + `flutter test` on push/PR. running `flutter analyze` + `flutter test` on every
       PR (the repo has no CI; these two commands are the stated quality gate).
 
 ### Docs
@@ -44,12 +44,12 @@ nice-to-have. Items reference concrete gaps in the current codebase.
 ## P1 — Soon after launch
 
 ### Contributor experience
-- [ ] `CONTRIBUTING.md` (build, test, `flutter analyze` gate, the SCPD-first rule
+- [x] `CONTRIBUTING.md` (build, test, `flutter analyze` gate, the SCPD-first rule
       for new SOAP actions, the "inject fakes" testing convention).
-- [ ] `CODE_OF_CONDUCT.md`.
-- [ ] `SECURITY.md` — how to report issues (relevant: the app sends unauthenticated
+- [x] `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1).
+- [x] `SECURITY.md` — how to report issues (relevant: the app sends unauthenticated
       control commands on the LAN).
-- [ ] `.github/` issue + PR templates; a `CHANGELOG.md`.
+- [x] `.github/` issue + PR templates and `CHANGELOG.md` added.
 - [ ] Dependabot/Renovate config (the current `flutter pub get` reports ~10
       out-of-date packages).
 

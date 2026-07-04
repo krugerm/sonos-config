@@ -46,6 +46,39 @@ void main() {
       expect(living.coordinator.icon, 'living');
     });
 
+    // Real capture from a Sonos Beam home-theater household (2026): a lone
+    // bonded Sub sits in its own invisible group, and the two Sonos One SL
+    // surrounds are <Satellite> children of the Beam, not ZoneGroupMembers.
+    // Expected: exactly one room ("TV Room"); the phantom "Sub" group is
+    // dropped and the invisible satellites don't inflate the member count.
+    test('drops a lone invisible Sub group and hides bonded satellites', () {
+      const xml = '''
+<ZoneGroupState><ZoneGroups>
+  <ZoneGroup Coordinator="RINCON_SUB" ID="RINCON_SUB:2083832462">
+    <ZoneGroupMember UUID="RINCON_SUB" ZoneName="Sub" Invisible="1"
+      Location="http://192.168.50.18:1400/xml/device_description.xml"/>
+  </ZoneGroup>
+  <ZoneGroup Coordinator="RINCON_BEAM" ID="RINCON_BEAM:2878326650">
+    <ZoneGroupMember UUID="RINCON_BEAM" ZoneName="TV Room" Configuration="1"
+      Location="http://192.168.50.185:1400/xml/device_description.xml"
+      HTSatChanMapSet="RINCON_BEAM:LF,RF;RINCON_LR:LR;RINCON_RR:RR">
+      <Satellite UUID="RINCON_RR" ZoneName="TV Room" Invisible="1"
+        Location="http://192.168.50.34:1400/xml/device_description.xml"/>
+      <Satellite UUID="RINCON_LR" ZoneName="TV Room" Invisible="1"
+        Location="http://192.168.50.52:1400/xml/device_description.xml"/>
+    </ZoneGroupMember>
+  </ZoneGroup>
+</ZoneGroups></ZoneGroupState>''';
+
+      final groups = parseZoneGroupState(xml);
+      expect(groups, hasLength(1));
+      final room = groups.single;
+      expect(room.displayName, 'TV Room');
+      expect(room.isSingle, isTrue);
+      expect(room.coordinator.host, '192.168.50.185');
+      expect(room.members.every((m) => !m.invisible), isTrue);
+    });
+
     test('sorts members with coordinator first', () {
       const xml = '''
 <ZoneGroupState><ZoneGroups>

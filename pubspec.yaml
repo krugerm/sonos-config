@@ -1,5 +1,5 @@
 name: personal_sonos
-description: A personal Flutter app to discover and control all Sonos speakers on your local network.
+description: A Flutter app to discover and configure Sonos speakers over their local UPnP interface.
 publish_to: "none"
 version: 1.0.0+1
 
@@ -31,6 +31,25 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
+
+# App icon: Sonos-evocative dark tile + sound-wave rings, overlaid with a
+# topology "constellation" (coordinator hub + bonded satellites) in a cyan→green
+# gradient. Regenerate with: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icon/icon_fullbleed.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/icon_fullbleed.png"
+  macos:
+    generate: true
+    image_path: "assets/icon/icon_macos.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/icon_fullbleed.png"

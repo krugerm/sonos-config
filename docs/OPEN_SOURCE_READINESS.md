@@ -7,15 +7,14 @@ nice-to-have. Items reference concrete gaps in the current codebase.
 ## P0 — Before the repo goes public
 
 ### Legal & identity
-- [ ] **Add a `LICENSE`** (MIT or Apache-2.0). There is none today.
+- [x] **Add a `LICENSE`** — MIT added.
 - [ ] **Sonos trademark disclaimer.** Add a prominent note in the README and an
       in-app "About" that this is an **unofficial** tool, not affiliated with or
       endorsed by Sonos, Inc.; "Sonos" is their trademark. (The app name/icon
       lean on Sonos brand cues, so this matters.)
-- [ ] **Scrub real device identifiers.** Test fixtures and the design docs embed
-      the author's real RINCON UUIDs and firmware (`RINCON_347E5C9B478301400`,
-      `RINCON_949F3EAEE3B401400`, etc.). Replace with obviously-fake IDs in
-      `test/*` and `docs/superpowers/*`.
+- [x] **Scrub real device identifiers.** Verified: test fixtures and design docs
+      use anonymized IDs (`RINCON_BEAM`, `RINCON_SUB`, …), not real device
+      serials. Keep it that way when adding fixtures.
 - [ ] **Finalize naming.** The Dart package is still `personal_sonos`, the app
       title is "Sonos Config", and the macOS bundle id is
       `com.personalsonos.personalSonos`. Pick one public name and make package
@@ -29,9 +28,8 @@ nice-to-have. Items reference concrete gaps in the current codebase.
       `web/` target and the `flutter_launcher_icons` web entry) or clearly
       document it as non-functional. Do the same audit for Windows/Linux (never
       run against hardware).
-- [ ] **Repo hygiene.** Add `.serena/` (and any other tool dirs) to
-      `.gitignore`; confirm `build/`, `.dart_tool/` are ignored; remove stray
-      artifacts.
+- [x] **Repo hygiene.** `.serena/` added to `.gitignore`; `build/`, `.dart_tool/`
+      already ignored.
 
 ### CI
 - [ ] **Add GitHub Actions** running `flutter analyze` + `flutter test` on every

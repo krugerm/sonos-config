@@ -1,8 +1,10 @@
+import '../models/household.dart';
 import '../models/media_item.dart';
 import '../models/play_mode.dart';
 import '../models/playback_state.dart';
 import '../models/zone_group.dart';
 import 'didl_parser.dart';
+import 'household_parser.dart';
 import 'soap_client.dart';
 import 'topology_parser.dart';
 
@@ -45,6 +47,18 @@ class SonosApi {
     final xml = resp.arg('ZoneGroupState');
     if (xml == null || xml.isEmpty) return const [];
     return parseZoneGroupState(xml);
+  }
+
+  /// Fetches the whole household as the config-tool [Household] model.
+  Future<Household> getHousehold(String host) async {
+    final resp = await _soap.invoke(
+      host,
+      SonosService.zoneGroupTopology,
+      'GetZoneGroupState',
+    );
+    final xml = resp.arg('ZoneGroupState');
+    if (xml == null || xml.isEmpty) return const Household(groups: []);
+    return parseHousehold(xml);
   }
 
   // ---- Transport (address the group coordinator) --------------------------

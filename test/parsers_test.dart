@@ -205,5 +205,37 @@ void main() {
       expect(parseMediaItems(null, '10.0.0.1'), isEmpty);
       expect(parseMediaItems('', '10.0.0.1'), isEmpty);
     });
+
+    // Real capture (2026): default Sonos-Radio favorites are "shortcut"
+    // favorites with an EMPTY <res/> — the playable stream lives behind the
+    // music service (sid=303), not in a local URI. We still parse the title
+    // and carry the resMD, but the item is correctly not directly playable.
+    test('parses a Sonos-Radio shortcut favorite with an empty <res>', () {
+      const result = '''
+<DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/"
+  xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/"
+  xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
+  <item id="FV:2/1" parentID="FV:2" restricted="false">
+    <dc:title>Discover Sonos Radio</dc:title>
+    <upnp:class>object.itemobject.item.sonos-favorite</upnp:class>
+    <r:ordinal>0</r:ordinal>
+    <res/>
+    <r:type>shortcut</r:type>
+    <r:description>Sonos Radio</r:description>
+    <r:resMD>&lt;DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"&gt;&lt;item id="10fe2064%2Fstations%2Fen-US%2FIE%2Fc2Q6SUU6ZGlzY292ZXItc29ub3MtcmFkaW8" parentID="10fe2064%2Fstations" restricted="true"&gt;&lt;dc:title&gt;Discover Sonos Radio&lt;/dc:title&gt;&lt;upnp:class&gt;object.container&lt;/upnp:class&gt;&lt;desc id="cdudn" nameSpace="urn:schemas-rinconnetworks-com:metadata-1-0/"&gt;SA_RINCON00000_X_#Svc00000-0-Token&lt;/desc&gt;&lt;/item&gt;&lt;/DIDL-Lite&gt;</r:resMD>
+  </item>
+</DIDL-Lite>''';
+      final items = parseMediaItems(result, '192.168.4.185');
+      expect(items, hasLength(1));
+      final fav = items.single;
+      expect(fav.title, 'Discover Sonos Radio');
+      expect(fav.subtitle, 'Sonos Radio');
+      expect(fav.uri, isNull); // empty <res/> — no direct stream
+      expect(fav.isPlayable, isFalse);
+      // The service metadata is preserved for a future SMAPI-aware resolver.
+      expect(fav.metadata, contains('object.container'));
+      expect(fav.metadata, contains('10fe2064%2Fstations'));
+    });
   });
 }

@@ -257,13 +257,22 @@ class SonosController extends ChangeNotifier {
   }
 
   /// Plays [favorite] on [group]'s coordinator, then refreshes.
-  Future<void> playFavorite(ZoneGroup group, MediaItem favorite) async {
-    if (!favorite.isPlayable) return;
+  ///
+  /// Returns `true` if playback was started. Returns `false` when the favorite
+  /// carries no directly-playable `res` URI (e.g. a music-service "shortcut"
+  /// favorite that must be resolved through the service's own API) or the
+  /// coordinator rejects the URI — so the UI can tell the user honestly rather
+  /// than claim success.
+  Future<bool> playFavorite(ZoneGroup group, MediaItem favorite) async {
+    if (!favorite.isPlayable) return false;
     try {
       await _api.playUri(group.coordinator.host, favorite.uri!,
           metadata: favorite.metadata ?? '');
-    } catch (_) {}
+    } catch (_) {
+      return false;
+    }
     await _refreshSelectedPlayback();
+    return true;
   }
 
   /// Reads the current play queue for [group].

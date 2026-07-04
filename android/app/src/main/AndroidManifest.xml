@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
 
     <application
-        android:label="Personal Sonos"
+        android:label="Sonos Config"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">

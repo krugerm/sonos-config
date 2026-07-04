@@ -22,6 +22,24 @@ class SystemMapPage extends StatelessWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<HouseholdStore>().initialize(),
           ),
+          IconButton(
+            tooltip: 'About',
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => showAboutDialog(
+              context: context,
+              applicationName: 'Sonos Config',
+              applicationVersion: '1.0.0',
+              applicationLegalese: '© 2026 Mike Kruger · MIT License\n\n'
+                  'Unofficial — not affiliated with or endorsed by Sonos, Inc. '
+                  '"Sonos" is a trademark of Sonos, Inc.',
+              children: const [
+                SizedBox(height: 12),
+                Text('Discover and configure the Sonos speakers on your local '
+                    'network. Playback is out of scope — use your music app for '
+                    'that.'),
+              ],
+            ),
+          ),
         ],
       ),
       body: Consumer<HouseholdStore>(

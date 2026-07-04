@@ -2,98 +2,81 @@
 
 Polishing tasks to make this project fit for public release. Grouped by
 priority: **P0** = do before publishing, **P1** = soon after, **P2** =
-nice-to-have. Items reference concrete gaps in the current codebase.
+nice-to-have. Checked items are done.
+
+**Build status:** macOS, Android (APK), and iOS (`--no-codesign`) all build
+successfully; `flutter analyze` clean; 48 tests pass.
 
 ## P0 — Before the repo goes public
 
 ### Legal & identity
-- [x] **Add a `LICENSE`** — MIT added.
-- [ ] **Sonos trademark disclaimer.** Add a prominent note in the README and an
-      in-app "About" that this is an **unofficial** tool, not affiliated with or
-      endorsed by Sonos, Inc.; "Sonos" is their trademark. (The app name/icon
-      lean on Sonos brand cues, so this matters.)
-- [x] **Scrub real device identifiers.** Verified: test fixtures and design docs
-      use anonymized IDs (`RINCON_BEAM`, `RINCON_SUB`, …), not real device
-      serials. Keep it that way when adding fixtures.
-- [x] **Display name unified** to "Sonos Config" across iOS/macOS/Android (internal package/product IDs left stable). Choosing a distinct public/store brand name remains an optional maintainer decision. The Dart package is still `personal_sonos`, the app
-      title is "Sonos Config", and the macOS bundle id is
-      `com.personalsonos.personalSonos`. Pick one public name and make package
-      name, display names (macOS/iOS/Android), and bundle/application IDs
-      consistent.
+- [x] **`LICENSE`** — MIT.
+- [x] **Sonos trademark disclaimer** — in the README and the in-app About dialog.
+- [x] **No real device identifiers** — fixtures use anonymized IDs
+      (`RINCON_BEAM`, …). Keep it that way.
+- [x] **Display name unified** to "Sonos Config" across iOS/macOS/Android
+      (internal package `personal_sonos` and bundle IDs left stable). Picking a
+      distinct public/store brand name is an optional maintainer decision.
 
 ### Correctness of the published surface
 - [ ] **Decide the web target.** Discovery uses `dart:io` `RawDatagramSocket`
-      (SSDP) and `network_info_plus`, neither of which works on Flutter web — the
-      web build can't actually discover speakers. Either **drop web** (remove the
-      `web/` target and the `flutter_launcher_icons` web entry) or clearly
-      document it as non-functional. Do the same audit for Windows/Linux (never
-      run against hardware).
-- [x] **Repo hygiene.** `.serena/` added to `.gitignore`; `build/`, `.dart_tool/`
-      already ignored.
+      (SSDP) + `network_info_plus`, which don't work on Flutter web — a web build
+      can't discover speakers. Drop the web target or document it as
+      non-functional. Same audit for Windows/Linux (never run against hardware).
+- [x] **Repo hygiene** — `.serena/` gitignored; `build/`, `.dart_tool/` already
+      ignored.
 
 ### CI
-- [x] **GitHub Actions** run dart-format + `flutter analyze` + `flutter test` on push/PR. running `flutter analyze` + `flutter test` on every
-      PR (the repo has no CI; these two commands are the stated quality gate).
+- [x] **GitHub Actions** — dart-format + `flutter analyze` + `flutter test` on
+      push/PR.
 
 ### Docs
-- [ ] **README for newcomers:** screenshots/GIF of the system map + a config
-      flow, per-platform install/run steps, supported-model caveats, the
-      "not affiliated with Sonos" note, and a short troubleshooting section
-      (nothing found → same-subnet requirement / multicast).
+- [ ] **README for newcomers** — screenshots/GIF of the system map + a config
+      flow, and a short troubleshooting section (nothing found → same-subnet /
+      multicast). (Per-platform install steps, model caveats, and the disclaimer
+      are already in.)
 
 ## P1 — Soon after launch
 
 ### Contributor experience
-- [x] `CONTRIBUTING.md` (build, test, `flutter analyze` gate, the SCPD-first rule
-      for new SOAP actions, the "inject fakes" testing convention).
-- [x] `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1).
-- [x] `SECURITY.md` — how to report issues (relevant: the app sends unauthenticated
-      control commands on the LAN).
-- [x] `.github/` issue + PR templates and `CHANGELOG.md` added.
-- [ ] Dependabot/Renovate config (the current `flutter pub get` reports ~10
-      out-of-date packages).
+- [x] `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1),
+      `SECURITY.md`, issue + PR templates, `CHANGELOG.md`.
+- [ ] Dependabot/Renovate config (`flutter pub get` reports ~10 out-of-date
+      packages; `network_info_plus` also triggers a Flutter "Built-in Kotlin"
+      deprecation warning on Android — worth tracking an upgrade).
 
-### Round out the config feature set (spec'd, not yet built)
+### Round out the config feature set (spec'd, API done, UI pending)
 - [ ] **Stereo-pair UI.** `CreateStereoPairAction`/`SeparateStereoPairAction`
-      exist and are unit-tested, but there's no UI to trigger them and no *live*
-      verification — capture a real stereo-pair `GetZoneGroupState` to confirm
-      `isSettled` and the `stereoLeft/Right` parsing.
-- [ ] **Surround add/remove.** Only Sub bond/unbond is wired. Add
-      `AddSurround`/`RemoveSurround` actions + UI (uses the same `AddHTSatellite`
-      with `:LR`/`:RR`).
-- [ ] **Grouping (party mode) UI.** `SonosApi.joinGroup/leaveGroup` exist but
-      there are no `ConfigAction`s or UI for grouping rooms.
-- [ ] **Desktop master–detail layout.** The spec called for a split view on wide
-      screens; the current UI is navigation-based (fine on phones, sparse on a
-      Mac window).
+      exist + are unit-tested, but there's no UI and no *live* verification —
+      capture a real stereo-pair `GetZoneGroupState` to validate `isSettled` and
+      `stereoLeft/Right` parsing.
+- [ ] **Surround add/remove** actions + UI (same `AddHTSatellite`, `:LR`/`:RR`).
+- [ ] **Grouping (party mode) UI.** `SonosApi.joinGroup/leaveGroup` exist; no
+      `ConfigAction`s or UI yet.
+- [ ] **Desktop master–detail layout** for wide screens (current UI is
+      navigation-based).
 
 ### Robustness
-- [ ] **Ethernet discovery.** `network_info_plus.getWifiIP()` returns null on a
-      wired Mac, so the unicast fallback can't compute a subnet. Enumerate
+- [ ] **Ethernet discovery.** `network_info_plus.getWifiIP()` is null on a wired
+      Mac, so the unicast fallback can't compute a subnet. Enumerate
       `NetworkInterface`s instead.
-- [ ] Broaden test coverage: executor undo of a real action end-to-end, the
-      `unconfirmed` (verify-timeout) UX, per-model capability edge cases.
+- [ ] Broaden tests: end-to-end undo, the verify-timeout (`unconfirmed`) UX,
+      per-model capability edge cases.
 - [ ] Accessibility pass (semantics labels on icon buttons/sliders, dynamic type,
       contrast in both themes).
 
-### Release packaging
-- [ ] macOS: code-sign + notarize; ship a DMG. (Current build is unsigned debug.)
-- [ ] Android: release signing config + adaptive icon (foreground/background),
-      set `minSdkVersion`, test on a device.
+### Release packaging (needs maintainer secrets/accounts)
+- [ ] macOS: code-sign + notarize; ship a DMG. (Current build is unsigned.)
+- [ ] Android: release signing config + adaptive icon; set `minSdkVersion`.
 - [ ] iOS: document the multicast entitlement requirement for on-device SSDP.
 
 ## P2 — Nice to have
 - [ ] Multi-model verification matrix (Play:1/3/5, Five, Era 100/300, Arc, Move,
-      Roam, Amp, older gens) — the app is verified only on a Beam + One SL + Sub.
-      Track community-confirmed models in the README.
-- [ ] Internationalization (`flutter_localizations` / ARB) — strings are hardcoded.
+      Roam, Amp, older gens) — verified only on Beam + One SL + Sub. Track
+      community-confirmed models in the README.
+- [ ] Internationalization (`flutter_localizations` / ARB).
 - [ ] In-app theme toggle (currently follows system).
-- [ ] Additional device settings: sub gain/polarity, surround level/EQ, TrueCinema
-      / room calibration read-outs (`RenderingControl` `SetEQ` exposes more types).
+- [ ] Additional device settings: sub gain/polarity, surround level, room
+      calibration read-outs (`RenderingControl#SetEQ` exposes more types).
 - [ ] Release automation (tag → build macOS/Android artifacts via CI).
-- [ ] A short architecture doc / diagram for contributors (or promote the design
-      spec under `docs/superpowers/` to a top-level `ARCHITECTURE.md`).
-
-## Quick wins (high value, low effort)
-`LICENSE` · Sonos disclaimer · `.gitignore` `.serena/` · CI workflow · scrub real
-UUIDs · drop/annotate the web target · README screenshots.
+- [ ] Promote the design spec to a top-level `ARCHITECTURE.md`.

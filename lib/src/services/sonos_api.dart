@@ -162,6 +162,40 @@ class SonosApi {
           'BecomeCoordinatorOfStandaloneGroup', arguments: _instance)
       .then((_) {});
 
+  // ---- Bonding / topology config ----------------------------------------
+
+  /// Bonds a satellite (surround or Sub) into a home-theater [primaryHost].
+  /// [htSatChanMapSet] e.g. `RINCON_BEAM:LF,RF;RINCON_SUB:SW`.
+  Future<void> addHtSatellite(String primaryHost, String htSatChanMapSet) =>
+      _soap
+          .invoke(primaryHost, SonosService.deviceProperties, 'AddHTSatellite',
+              arguments: {'HTSatChanMapSet': htSatChanMapSet})
+          .then((_) {});
+
+  /// Unbonds the satellite identified by [satRoomUuid] from [primaryHost].
+  Future<void> removeHtSatellite(String primaryHost, String satRoomUuid) =>
+      _soap
+          .invoke(
+              primaryHost, SonosService.deviceProperties, 'RemoveHTSatellite',
+              arguments: {'SatRoomUUID': satRoomUuid})
+          .then((_) {});
+
+  /// Creates a stereo pair. [channelMapSet] e.g. `L_UUID:LF,LF;R_UUID:RF,RF`.
+  Future<void> createStereoPair(String primaryHost, String channelMapSet) =>
+      _soap
+          .invoke(
+              primaryHost, SonosService.deviceProperties, 'CreateStereoPair',
+              arguments: {'ChannelMapSet': channelMapSet})
+          .then((_) {});
+
+  /// Splits a stereo pair back into two standalone players.
+  Future<void> separateStereoPair(String primaryHost, String channelMapSet) =>
+      _soap
+          .invoke(primaryHost, SonosService.deviceProperties,
+              'SeparateStereoPair',
+              arguments: {'ChannelMapSet': channelMapSet})
+          .then((_) {});
+
   // ---- Group volume (coordinator) -----------------------------------------
 
   Future<int> getGroupVolume(String host) async {

@@ -10,6 +10,13 @@ This is a **configuration tool, not a playback controller** — it does the setu
 and topology operations the official app hides or gets wrong. Play music from
 Spotify or wherever you like; use this to wire the system up.
 
+> [!IMPORTANT]
+> **Not affiliated with Sonos.** This is an independent, unofficial, community
+> project. "Sonos" is a trademark of Sonos, Inc.; this project is not endorsed
+> by, sponsored by, or associated with Sonos, Inc. It works by speaking the
+> speakers' own local network protocol and comes with no warranty — you use it
+> to change your own equipment's configuration at your own risk.
+
 ## Features
 
 - **Automatic discovery** of all Sonos players via SSDP (UDP multicast), with a
@@ -138,3 +145,13 @@ end-to-end against a real **Sonos Beam home theater** (Beam + two Sonos One SL
 surrounds + a Sub). It has **not** been exercised from CI — an isolated sandbox
 has no route to a home LAN — so run it at home on the same Wi-Fi as your system
 to configure your own speakers.
+
+## Contributing
+
+Contributions welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md). The quality gate
+is `flutter analyze` (clean) + `flutter test` (green); please keep both passing.
+
+## License
+
+[MIT](LICENSE) © Mike Kruger. "Sonos" is a trademark of Sonos, Inc.; this project
+is not affiliated with or endorsed by Sonos, Inc.

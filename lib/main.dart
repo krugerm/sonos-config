@@ -29,8 +29,7 @@ class _SonosConfigAppState extends State<SonosConfigApp> {
     super.initState();
     _api = SonosApi();
     _household = HouseholdStore(api: _api);
-    _executor =
-        ActionExecutor(api: _api, refreshHousehold: _household.refresh);
+    _executor = ActionExecutor(api: _api, refreshHousehold: _household.refresh);
     _settings = DeviceSettingsStore(_api);
     _household.initialize();
   }

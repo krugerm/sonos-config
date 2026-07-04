@@ -13,8 +13,9 @@ Future<void> runConfigAction(BuildContext context, ConfigAction action) async {
   final store = context.read<HouseholdStore>();
   final executor = context.read<ActionExecutor>();
   final messenger = ScaffoldMessenger.of(context);
-  final lines =
-      store.household == null ? <ChangeLine>[] : action.preview(store.household!);
+  final lines = store.household == null
+      ? <ChangeLine>[]
+      : action.preview(store.household!);
 
   final confirmed = await showModalBottomSheet<bool>(
     context: context,
@@ -37,7 +38,10 @@ Future<void> runConfigAction(BuildContext context, ConfigAction action) async {
         "Applied, but couldn't confirm it settled — check the system map",
         false
       ),
-    ActionPhase.failed => ('Failed — ${executor.error ?? 'unknown error'}', false),
+    ActionPhase.failed => (
+        'Failed — ${executor.error ?? 'unknown error'}',
+        false
+      ),
     _ => ('', false),
   };
   if (text.isEmpty) return;

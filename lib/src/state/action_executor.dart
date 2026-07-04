@@ -82,9 +82,10 @@ class ActionExecutor extends ChangeNotifier {
   }
 
   Future<bool> _pollUntilSettled(ConfigAction action) async {
-    final maxPolls = (verifyTimeout.inMilliseconds / pollInterval.inMilliseconds)
-        .ceil()
-        .clamp(1, 100000);
+    final maxPolls =
+        (verifyTimeout.inMilliseconds / pollInterval.inMilliseconds)
+            .ceil()
+            .clamp(1, 100000);
     for (var i = 0; i < maxPolls; i++) {
       Household snapshot;
       try {

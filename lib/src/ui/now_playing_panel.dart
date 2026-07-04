@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/play_mode.dart';
 import '../models/playback_state.dart';
 import '../models/sonos_speaker.dart';
 import '../models/zone_group.dart';
 import '../state/sonos_controller.dart';
+import 'favorites_sheet.dart';
+import 'group_sheet.dart';
 import 'widgets/album_art.dart';
 import 'widgets/transport_controls.dart';
 import 'widgets/volume_control.dart';
@@ -53,12 +56,31 @@ class NowPlayingPanel extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _SeekBar(group: group, state: state),
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
+            _PlayModeRow(group: group, mode: state.playMode),
+            const SizedBox(height: 4),
             TransportControls(
               transport: state.transport,
               onPlayPause: () => controller.togglePlayPause(group),
               onNext: () => controller.next(group),
               onPrevious: () => controller.previous(group),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => FavoritesSheet.show(context, group),
+                  icon: const Icon(Icons.favorite_outline),
+                  label: const Text('Favorites'),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton.icon(
+                  onPressed: () => GroupSheet.show(context, group),
+                  icon: const Icon(Icons.group_add_outlined),
+                  label: Text(group.isSingle ? 'Group' : 'Grouping'),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             Card(
@@ -82,6 +104,49 @@ class NowPlayingPanel extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Shuffle toggle + repeat cycle (off / all / one).
+class _PlayModeRow extends StatelessWidget {
+  const _PlayModeRow({required this.group, required this.mode});
+
+  final ZoneGroup group;
+  final PlayMode mode;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = context.read<SonosController>();
+    final scheme = Theme.of(context).colorScheme;
+
+    Color colorFor(bool active) =>
+        active ? scheme.primary : scheme.onSurfaceVariant;
+
+    final repeatIcon = mode.repeat == SonosRepeatMode.one
+        ? Icons.repeat_one_rounded
+        : Icons.repeat_rounded;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          tooltip: mode.shuffle ? 'Shuffle on' : 'Shuffle off',
+          onPressed: () => controller.toggleShuffle(group),
+          icon: Icon(Icons.shuffle_rounded, color: colorFor(mode.shuffle)),
+        ),
+        const SizedBox(width: 24),
+        IconButton(
+          tooltip: switch (mode.repeat) {
+            SonosRepeatMode.off => 'Repeat off',
+            SonosRepeatMode.all => 'Repeat all',
+            SonosRepeatMode.one => 'Repeat one',
+          },
+          onPressed: () => controller.cycleRepeat(group),
+          icon: Icon(repeatIcon,
+              color: colorFor(mode.repeat != SonosRepeatMode.off)),
+        ),
+      ],
     );
   }
 }

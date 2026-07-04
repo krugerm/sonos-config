@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:personal_sonos/src/models/play_mode.dart';
 import 'package:personal_sonos/src/models/playback_state.dart';
 import 'package:personal_sonos/src/services/didl_parser.dart';
 import 'package:personal_sonos/src/services/topology_parser.dart';
@@ -108,6 +109,68 @@ void main() {
       expect(TransportState.parse('PAUSED_PLAYBACK'), TransportState.paused);
       expect(TransportState.parse('STOPPED'), TransportState.stopped);
       expect(TransportState.parse('WAT'), TransportState.unknown);
+    });
+  });
+
+  group('PlayMode', () {
+    test('round-trips every Sonos play-mode string', () {
+      for (final s in [
+        'NORMAL',
+        'SHUFFLE',
+        'SHUFFLE_NOREPEAT',
+        'SHUFFLE_REPEAT_ONE',
+        'REPEAT_ALL',
+        'REPEAT_ONE',
+      ]) {
+        expect(PlayMode.parse(s).toSonos(), s, reason: s);
+      }
+    });
+
+    test('shuffle + repeat map onto the two axes', () {
+      final m = PlayMode.parse('SHUFFLE');
+      expect(m.shuffle, isTrue);
+      expect(m.repeat, SonosRepeatMode.all);
+    });
+
+    test('cycleRepeat goes off -> all -> one -> off', () {
+      var m = const PlayMode();
+      m = m.cycleRepeat();
+      expect(m.repeat, SonosRepeatMode.all);
+      m = m.cycleRepeat();
+      expect(m.repeat, SonosRepeatMode.one);
+      m = m.cycleRepeat();
+      expect(m.repeat, SonosRepeatMode.off);
+    });
+  });
+
+  group('parseMediaItems (favorites)', () {
+    test('extracts uri and resMD metadata for a favorite', () {
+      const result = '''
+<DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/"
+  xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/"
+  xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
+  <item id="FV:2/12" parentID="FV:2" restricted="true">
+    <dc:title>Morning Jazz</dc:title>
+    <r:description>Radio</r:description>
+    <res>x-sonosapi-stream:station%3a123?sid=254</res>
+    <upnp:albumArtURI>/getaa?s=1&amp;u=x</upnp:albumArtURI>
+    <r:resMD>&lt;DIDL-Lite&gt;&lt;item&gt;meta&lt;/item&gt;&lt;/DIDL-Lite&gt;</r:resMD>
+  </item>
+</DIDL-Lite>''';
+      final items = parseMediaItems(result, '192.168.1.10');
+      expect(items, hasLength(1));
+      final fav = items.single;
+      expect(fav.title, 'Morning Jazz');
+      expect(fav.uri, 'x-sonosapi-stream:station%3a123?sid=254');
+      expect(fav.isPlayable, isTrue);
+      expect(fav.metadata, contains('meta'));
+      expect(fav.albumArtUri, 'http://192.168.1.10:1400/getaa?s=1&u=x');
+    });
+
+    test('returns empty list for blank input', () {
+      expect(parseMediaItems(null, '10.0.0.1'), isEmpty);
+      expect(parseMediaItems('', '10.0.0.1'), isEmpty);
     });
   });
 }

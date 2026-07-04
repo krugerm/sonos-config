@@ -1,29 +1,29 @@
 /// Sonos encodes shuffle and repeat as a single transport play-mode string.
 /// This models the two independent axes and maps to/from those strings.
-enum RepeatMode { off, all, one }
+enum SonosRepeatMode { off, all, one }
 
 class PlayMode {
-  const PlayMode({this.shuffle = false, this.repeat = RepeatMode.off});
+  const PlayMode({this.shuffle = false, this.repeat = SonosRepeatMode.off});
 
   final bool shuffle;
-  final RepeatMode repeat;
+  final SonosRepeatMode repeat;
 
   /// Parses a Sonos `PlayMode` string (e.g. `SHUFFLE`, `REPEAT_ONE`).
   static PlayMode parse(String? raw) {
     switch (raw) {
       case 'SHUFFLE': // shuffle + repeat all
-        return const PlayMode(shuffle: true, repeat: RepeatMode.all);
+        return const PlayMode(shuffle: true, repeat: SonosRepeatMode.all);
       case 'SHUFFLE_NOREPEAT':
-        return const PlayMode(shuffle: true, repeat: RepeatMode.off);
+        return const PlayMode(shuffle: true, repeat: SonosRepeatMode.off);
       case 'SHUFFLE_REPEAT_ONE':
-        return const PlayMode(shuffle: true, repeat: RepeatMode.one);
+        return const PlayMode(shuffle: true, repeat: SonosRepeatMode.one);
       case 'REPEAT_ALL':
-        return const PlayMode(shuffle: false, repeat: RepeatMode.all);
+        return const PlayMode(shuffle: false, repeat: SonosRepeatMode.all);
       case 'REPEAT_ONE':
-        return const PlayMode(shuffle: false, repeat: RepeatMode.one);
+        return const PlayMode(shuffle: false, repeat: SonosRepeatMode.one);
       case 'NORMAL':
       default:
-        return const PlayMode(shuffle: false, repeat: RepeatMode.off);
+        return const PlayMode(shuffle: false, repeat: SonosRepeatMode.off);
     }
   }
 
@@ -31,20 +31,20 @@ class PlayMode {
   String toSonos() {
     if (shuffle) {
       switch (repeat) {
-        case RepeatMode.all:
+        case SonosRepeatMode.all:
           return 'SHUFFLE';
-        case RepeatMode.one:
+        case SonosRepeatMode.one:
           return 'SHUFFLE_REPEAT_ONE';
-        case RepeatMode.off:
+        case SonosRepeatMode.off:
           return 'SHUFFLE_NOREPEAT';
       }
     }
     switch (repeat) {
-      case RepeatMode.all:
+      case SonosRepeatMode.all:
         return 'REPEAT_ALL';
-      case RepeatMode.one:
+      case SonosRepeatMode.one:
         return 'REPEAT_ONE';
-      case RepeatMode.off:
+      case SonosRepeatMode.off:
         return 'NORMAL';
     }
   }
@@ -54,9 +54,9 @@ class PlayMode {
   /// Cycles repeat off → all → one → off.
   PlayMode cycleRepeat() {
     final next = switch (repeat) {
-      RepeatMode.off => RepeatMode.all,
-      RepeatMode.all => RepeatMode.one,
-      RepeatMode.one => RepeatMode.off,
+      SonosRepeatMode.off => SonosRepeatMode.all,
+      SonosRepeatMode.all => SonosRepeatMode.one,
+      SonosRepeatMode.one => SonosRepeatMode.off,
     };
     return PlayMode(shuffle: shuffle, repeat: next);
   }

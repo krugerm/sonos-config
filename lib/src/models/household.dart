@@ -29,4 +29,26 @@ class Household {
     }
     return null;
   }
+
+  /// Returns a copy with each device's [Device.model] filled in from
+  /// [modelByUuid] (used after fetching device descriptions). Uuids absent from
+  /// the map keep their existing model.
+  Household withModels(Map<String, String?> modelByUuid) {
+    Device apply(Device d) {
+      final m = modelByUuid[d.uuid];
+      return m == null ? d : d.copyWith(model: m);
+    }
+
+    return Household(groups: [
+      for (final g in groups)
+        Group(id: g.id, coordinatorUuid: g.coordinatorUuid, rooms: [
+          for (final r in g.rooms)
+            Room(
+              name: r.name,
+              coordinator: apply(r.coordinator),
+              satellites: [for (final s in r.satellites) apply(s)],
+            ),
+        ]),
+    ]);
+  }
 }

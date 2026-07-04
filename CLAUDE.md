@@ -36,7 +36,10 @@ services/   the Sonos wire protocol
   didl_parser.dart      DIDL-Lite -> track metadata / MediaItem list
 state/
   sonos_controller.dart ChangeNotifier: discovery, polling loop, all commands
-ui/         Flutter widgets; read state via provider, call controller methods
+ui/         screen-level widgets (home_page, *_panel, *_sheet); read state via
+            provider, call controller methods
+  widgets/  small reusable pieces (album_art, status_view, transport_controls,
+            volume_control) — put shared, stateless UI here, not in screens
 ```
 
 - **State management:** `provider` (`ChangeNotifier` = `SonosController`). It is

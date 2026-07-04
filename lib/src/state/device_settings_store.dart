@@ -6,6 +6,7 @@ import '../services/sonos_api.dart';
 /// A snapshot of a single device's tunable settings.
 class DeviceSettings {
   const DeviceSettings({
+    this.volume = 0,
     this.bass = 0,
     this.treble = 0,
     this.balance = 0,
@@ -16,6 +17,7 @@ class DeviceSettings {
     this.buttonLocked = false,
   });
 
+  final int volume;
   final int bass;
   final int treble;
   final int balance;
@@ -26,6 +28,7 @@ class DeviceSettings {
   final bool buttonLocked;
 
   DeviceSettings copyWith({
+    int? volume,
     int? bass,
     int? treble,
     int? balance,
@@ -36,6 +39,7 @@ class DeviceSettings {
     bool? buttonLocked,
   }) {
     return DeviceSettings(
+      volume: volume ?? this.volume,
       bass: bass ?? this.bass,
       treble: treble ?? this.treble,
       balance: balance ?? this.balance,
@@ -65,6 +69,7 @@ class DeviceSettingsStore extends ChangeNotifier {
     final caps = device.capabilities;
     var s = const DeviceSettings();
     try {
+      s = s.copyWith(volume: await _api.getVolume(host));
       if (caps.hasBassTreble) {
         s = s.copyWith(
           bass: await _api.getBass(host),
@@ -90,6 +95,11 @@ class DeviceSettingsStore extends ChangeNotifier {
     settings = s;
     loading = false;
     notifyListeners();
+  }
+
+  Future<void> setVolume(Device d, int v) async {
+    await _api.setVolume(d.host, v);
+    _update(settings.copyWith(volume: v.clamp(0, 100)));
   }
 
   Future<void> setBass(Device d, int v) async {

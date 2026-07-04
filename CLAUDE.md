@@ -4,18 +4,25 @@ Guidance for Claude Code (and humans) working in this repository.
 
 ## What this is
 
-**Personal Sonos** — a Flutter app that discovers and controls every Sonos
+**Sonos Config** — a Flutter app that discovers and **configures** every Sonos
 speaker on the local network by speaking the speakers' local **UPnP/SOAP**
-interface directly (port 1400). No Sonos account, no cloud API, no login.
+interface directly (port 1400). No Sonos account, no cloud, no login.
+
+It is a **discovery & configuration tool**, not a playback controller. It does
+the topology/setup operations the official app hides or gets wrong — bonding a
+Sub, home-theater surrounds, stereo pairs, room renaming, LED/button lock, and
+audio EQ. **Playback, queue, and favorites are intentionally out of scope**
+(manage those in Spotify etc.). History: this began as a playback controller;
+see `docs/superpowers/specs/` for the pivot design.
 
 ## Commands
 
 ```bash
 flutter pub get            # install dependencies
-flutter run                # run on attached device (or -d macos/linux/android/…)
+flutter run -d macos       # run (macOS is the primary target; also linux/ios/…)
 flutter analyze            # static analysis — keep this clean
-flutter test               # unit + controller integration tests
-flutter build apk          # Android release (or build linux/macos/ios/web)
+flutter test               # unit + widget tests
+flutter build macos        # release build (or build apk/linux/…)
 ```
 
 There is no CI configured; `flutter analyze` + `flutter test` are the gate.
@@ -24,75 +31,94 @@ Always run both before committing non-trivial changes.
 ## Architecture
 
 Strict one-way layering — UI never talks to the network directly, only through
-the controller:
+the stores/actions:
 
 ```
-models/     plain data: SonosSpeaker, ZoneGroup, PlaybackState, PlayMode, MediaItem
+models/     immutable domain: Device, Room, Group, Household, Capabilities,
+            BondRole, ChangeLine
+  Device  = one physical player (uuid, model, host, firmware, bondRole)
+  Room    = a coordinator + its bonded satellites (sub/surrounds), one unit
+  Group   = a party-mode set of Rooms playing in sync (distinct from bonding)
+  Capabilities.forModel(model, role) — derived flags that gate the UI
 services/   the Sonos wire protocol
-  soap_client.dart      minimal hand-rolled SOAP envelope + response helpers
-  ssdp_discovery.dart   SSDP multicast M-SEARCH + unicast /24 fallback scan
-  sonos_api.dart        typed methods per SOAP action (transport, volume, browse, grouping)
-  topology_parser.dart  GetZoneGroupState XML -> List<ZoneGroup>
-  didl_parser.dart      DIDL-Lite -> track metadata / MediaItem list
+  soap_client.dart       minimal hand-rolled SOAP envelope + response helpers
+  ssdp_discovery.dart    SSDP M-SEARCH + unicast /24 fallback scan
+  household_parser.dart  GetZoneGroupState XML -> Household (Devices/Rooms/Groups)
+  device_info.dart       fetch modelName from /xml/device_description.xml
+  sonos_api.dart         typed config methods (bonding, identity, audio/EQ)
+actions/    the mutating operations, each a ConfigAction
+  config_action.dart     abstract: preview / apply / isSettled / inverse
+  topology_actions.dart  BondSub, UnbondSub, Create/SeparateStereoPair
+  rename_action.dart     RenameRoom
 state/
-  sonos_controller.dart ChangeNotifier: discovery, polling loop, all commands
-ui/         Flutter widgets; read state via provider, call controller methods
+  household_store.dart      discovery + topology poll + model enrichment (source of truth)
+  action_executor.dart      guided-safe lifecycle: apply -> verify -> undo
+  device_settings_store.dart per-device audio + LED/button settings
+ui/         system_map_page (home), room_detail_page, device_detail_page,
+            action_runner (confirm -> progress -> result + undo), ui_util
 ```
 
-- **State management:** `provider` (`ChangeNotifier` = `SonosController`). It is
-  the single source of truth; the widget tree is declarative over it.
-- **Data flow:** `SonosController` owns a `SonosApi` and `SsdpDiscovery`. It
-  discovers hosts, loads topology from any reachable player, polls the selected
-  group every 2s, and exposes optimistic command methods.
-- **Addressing:** transport/group-volume commands go to the group
-  **coordinator**; per-speaker volume goes to the member's own host.
+- **State management:** `provider`. Three `ChangeNotifier` stores
+  (`HouseholdStore`, `ActionExecutor`, `DeviceSettingsStore`) built in
+  `main.dart` over one shared `SonosApi`.
+- **Read path:** `HouseholdStore` discovers hosts, loads the `Household` from any
+  reachable player, enriches devices with model names, and polls. The UI is
+  declarative over its immutable snapshot.
+- **Write path:** every change is a `ConfigAction` run through `ActionExecutor`:
+  preview → apply (SOAP) → **verify** (poll `HouseholdStore.refresh()` until
+  `isSettled` or ~30s timeout) → done/unconfirmed/failed, with one-tap undo when
+  a clean inverse exists. Never report success that wasn't observed.
+- **Addressing:** bonding/home-theater actions go to the **primary
+  (coordinator)** host; per-device settings go to the member's own host.
 
 ## Conventions
 
-- `InstanceID` is always `0`; volume channel is always `Master`.
-- New Sonos actions: add the service to the `SonosService` enum in
-  `soap_client.dart` (control path + service type), then a typed method on
-  `SonosApi`, then a command on `SonosController`. Keep XML parsing in the
-  `*_parser.dart` files, not in widgets.
-- Commands should update local `PlaybackState` optimistically where it helps the
-  UI feel responsive (volume, play/pause), then reconcile on the next poll.
-- Network calls in the controller are wrapped in `try/catch` that swallow
-  transient errors — the polling loop retries. Don't let one failed sub-call
-  blank the whole tile.
-- Name clash to remember: our repeat enum is `SonosRepeatMode` (Flutter Material
-  already exports a `RepeatMode`).
+- **SCPD-first:** before wiring a new SOAP action, verify its exact name +
+  argument signature against the device's own service description
+  (`/xml/DeviceProperties1.xml`, `/xml/RenderingControl1.xml`, …). Don't guess.
+- `InstanceID` is always `0`; single-channel ops use `Channel: Master`.
+- Channel-map formats (reproduce from real captures):
+  - stereo pair `ChannelMapSet`: `{leftUuid}:LF,LF;{rightUuid}:RF,RF`
+  - HT satellite `HTSatChanMapSet`: `{primaryUuid}:LF,RF;{satUuid}:{LR|RR|SW}`
+  - unbond: `RemoveHTSatellite(SatRoomUUID={satUuid})`
+- Keep XML parsing in `*_parser.dart`, not in widgets. Capability-gate UI
+  controls off `Device.capabilities`, never off model-name checks in widgets.
+- A group whose members are all invisible (a lone bonded Sub / bridge) is not a
+  room; but an *unbonded* invisible device is surfaced via
+  `Household.unbondedInvisibleDevices` so it can be bonded.
 
 ## Testing approach
 
-- `test/parsers_test.dart` — pure functions: topology, DIDL/favorites, play-mode
-  round-trip. No I/O.
-- `test/controller_test.dart` — drives the full discover → topology → playback →
-  command flow with **injected fakes** (`extends SonosApi` / `SsdpDiscovery`
-  with overridden methods). This is how to test behaviour without hardware.
+Prefer extending the real service classes / injecting fakes over mock
+frameworks — constructors are cheap and take injectable dependencies.
 
-Prefer extending the real service classes and overriding methods over mocking
-frameworks — the constructors are cheap and take injectable dependencies.
+- `test/support/fake_soap_client.dart` — records SOAP calls + returns canned
+  responses; the basis for `SonosApi`/action tests.
+- Pure model/parser tests: `capabilities_test`, `device_test`,
+  `household_model_test`, `household_parser_test` (real topology captures).
+- `config_actions_test` / `action_executor_test` — action preview/isSettled/
+  inverse, and the executor lifecycle (settle / timeout / fault / undo) with a
+  scriptable fake household.
+- `household_store_test` / `device_settings_store_test` — stores with a fake API
+  + fake discovery + fake `fetchModel`.
+- `system_map_widget_test` — the home screen renders from a ready store.
 
 ## Environment gotchas
 
-- **No speakers in cloud/CI:** an isolated sandbox has no route to a home LAN
-  (its IP is in the RFC 5737 test range) and SSDP returns nothing. You cannot
-  test against real speakers except on the same Wi-Fi. Do not claim hardware
-  verification that didn't happen.
+- **No speakers in cloud/CI:** an isolated sandbox has no route to a home LAN and
+  SSDP returns nothing. You cannot test against real speakers except on the same
+  Wi-Fi. Do not claim hardware verification that didn't happen.
 - **Cleartext HTTP:** Sonos control is plain HTTP on port 1400. Android needs
-  `usesCleartextTraffic`; iOS needs `NSAllowsLocalNetworking`; both are already
-  set. Don't switch these calls to HTTPS.
+  `usesCleartextTraffic`; iOS needs `NSAllowsLocalNetworking`; both are set.
+  Don't switch these calls to HTTPS.
 - **Permissions already wired:** Android multicast + INTERNET, iOS
   local-network/Bonjour, macOS `network.client`/`network.server` entitlements.
-  Adding network features usually needs no permission changes.
-- **iOS multicast on device:** sending SSDP from a physical iPhone additionally
-  requires Apple's multicast entitlement (needs account approval); the unicast
-  fallback works without it.
-- **Running `flutter` as root** prints a warning and needs
-  `git config --global --add safe.directory <flutter-sdk>`; it still works.
+- **iOS multicast on device** additionally needs Apple's multicast entitlement;
+  the unicast fallback works without it.
+- **Bonding reboots the satellite** (~10-15s) before it re-joins — this is why
+  actions verify by polling until the topology settles.
 
-## Known extension points
+## Design docs
 
-- Deep music-service browsing (search, drill into albums/playlists) — the
-  `ContentDirectory#Browse` plumbing in `SonosApi` is the hook.
-- Queue management UI — `browseQueue` (`Q:0`) already exists in `SonosApi`.
+`docs/superpowers/specs/` (design) and `docs/superpowers/plans/` (phased
+implementation plans) capture the pivot and the build.

@@ -1,3 +1,5 @@
+import '../models/media_item.dart';
+import '../models/play_mode.dart';
 import '../models/playback_state.dart';
 import '../models/zone_group.dart';
 import 'didl_parser.dart';
@@ -86,6 +88,79 @@ class SonosApi {
       duration: _parseDuration(resp.arg('TrackDuration')),
     );
   }
+
+  Future<PlayMode> getPlayMode(String host) async {
+    final resp = await _soap.invoke(
+      host,
+      SonosService.avTransport,
+      'GetTransportSettings',
+      arguments: _instance,
+    );
+    return PlayMode.parse(resp.arg('PlayMode'));
+  }
+
+  Future<void> setPlayMode(String host, PlayMode mode) => _soap
+      .invoke(host, SonosService.avTransport, 'SetPlayMode', arguments: {
+        ..._instance,
+        'NewPlayMode': mode.toSonos(),
+      })
+      .then((_) {});
+
+  /// Points the coordinator at [uri] (with its DIDL [metadata]) and starts it.
+  /// Used to play a favorite.
+  Future<void> playUri(String host, String uri, {String metadata = ''}) async {
+    await _soap.invoke(host, SonosService.avTransport, 'SetAVTransportURI',
+        arguments: {
+          ..._instance,
+          'CurrentURI': uri,
+          'CurrentURIMetaData': metadata,
+        });
+    await play(host);
+  }
+
+  // ---- Content browsing (favorites / queue) -------------------------------
+
+  /// Browses the "Sonos Favorites" container (`FV:2`) on [host].
+  Future<List<MediaItem>> browseFavorites(String host) =>
+      _browse(host, 'FV:2');
+
+  /// Browses the current play queue (`Q:0`) of the group at [host].
+  Future<List<MediaItem>> browseQueue(String host) => _browse(host, 'Q:0');
+
+  Future<List<MediaItem>> _browse(String host, String objectId) async {
+    final resp = await _soap.invoke(
+      host,
+      SonosService.contentDirectory,
+      'Browse',
+      arguments: {
+        'ObjectID': objectId,
+        'BrowseFlag': 'BrowseDirectChildren',
+        'Filter': '*',
+        'StartingIndex': '0',
+        'RequestedCount': '200',
+        'SortCriteria': '',
+      },
+    );
+    return parseMediaItems(resp.arg('Result'), host);
+  }
+
+  // ---- Grouping -----------------------------------------------------------
+
+  /// Makes the player at [memberHost] join the group led by [coordinatorUuid].
+  Future<void> joinGroup(String memberHost, String coordinatorUuid) => _soap
+      .invoke(memberHost, SonosService.avTransport, 'SetAVTransportURI',
+          arguments: {
+            ..._instance,
+            'CurrentURI': 'x-rincon:$coordinatorUuid',
+            'CurrentURIMetaData': '',
+          })
+      .then((_) {});
+
+  /// Removes the player at [memberHost] from its group, making it standalone.
+  Future<void> leaveGroup(String memberHost) => _soap
+      .invoke(memberHost, SonosService.avTransport,
+          'BecomeCoordinatorOfStandaloneGroup', arguments: _instance)
+      .then((_) {});
 
   // ---- Group volume (coordinator) -----------------------------------------
 

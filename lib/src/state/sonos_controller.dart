@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../models/media_item.dart';
 import '../models/playback_state.dart';
 import '../models/sonos_speaker.dart';
 import '../models/zone_group.dart';
@@ -84,6 +85,7 @@ class SonosController extends ChangeNotifier {
       await _refreshSelectedPlayback();
       _setStatus(DiscoveryStatus.ready);
       _startPolling();
+      unawaited(loadFavorites());
     } catch (e) {
       _error = e.toString();
       _setStatus(DiscoveryStatus.error);
@@ -151,9 +153,13 @@ class SonosController extends ChangeNotifier {
         volume: results[1] as int,
         muted: results[2] as bool,
       );
-      // Track metadata/position is a separate call; tolerate its absence.
+      // Track metadata/position and play mode are separate calls; tolerate
+      // either being absent so a single failure doesn't blank the whole tile.
       try {
         state = await _api.getPositionInfo(host, state);
+      } catch (_) {}
+      try {
+        state = state.copyWith(playMode: await _api.getPlayMode(host));
       } catch (_) {}
       _playback[group.id] = state;
       _notify();
@@ -212,6 +218,79 @@ class SonosController extends ChangeNotifier {
     try {
       await _api.setGroupMute(group.coordinator.host, !muted);
     } catch (_) {}
+  }
+
+  // ---- Play modes ---------------------------------------------------------
+
+  Future<void> toggleShuffle(ZoneGroup group) async {
+    final mode = playbackFor(group).playMode;
+    final next = mode.withShuffle(!mode.shuffle);
+    _updatePlayback(group, (s) => s.copyWith(playMode: next));
+    try {
+      await _api.setPlayMode(group.coordinator.host, next);
+    } catch (_) {}
+  }
+
+  Future<void> cycleRepeat(ZoneGroup group) async {
+    final next = playbackFor(group).playMode.cycleRepeat();
+    _updatePlayback(group, (s) => s.copyWith(playMode: next));
+    try {
+      await _api.setPlayMode(group.coordinator.host, next);
+    } catch (_) {}
+  }
+
+  // ---- Favorites ----------------------------------------------------------
+
+  List<MediaItem> _favorites = const [];
+  List<MediaItem> get favorites => _favorites;
+
+  /// Loads Sonos favorites from any reachable player (the list is household-wide).
+  Future<void> loadFavorites() async {
+    for (final host in _hosts) {
+      try {
+        final items = await _api.browseFavorites(host);
+        _favorites = items;
+        _notify();
+        return;
+      } catch (_) {}
+    }
+  }
+
+  /// Plays [favorite] on [group]'s coordinator, then refreshes.
+  Future<void> playFavorite(ZoneGroup group, MediaItem favorite) async {
+    if (!favorite.isPlayable) return;
+    try {
+      await _api.playUri(group.coordinator.host, favorite.uri!,
+          metadata: favorite.metadata ?? '');
+    } catch (_) {}
+    await _refreshSelectedPlayback();
+  }
+
+  /// Reads the current play queue for [group].
+  Future<List<MediaItem>> loadQueue(ZoneGroup group) async {
+    try {
+      return await _api.browseQueue(group.coordinator.host);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  // ---- Grouping -----------------------------------------------------------
+
+  /// Adds [speaker] to [target]'s group (drops it from any previous group).
+  Future<void> joinGroup(SonosSpeaker speaker, ZoneGroup target) async {
+    try {
+      await _api.joinGroup(speaker.host, target.coordinator.uuid);
+    } catch (_) {}
+    await _loadTopology();
+  }
+
+  /// Splits [speaker] out into its own standalone group.
+  Future<void> leaveGroup(SonosSpeaker speaker) async {
+    try {
+      await _api.leaveGroup(speaker.host);
+    } catch (_) {}
+    await _loadTopology();
   }
 
   /// Sets the volume of a single [speaker] within a group.

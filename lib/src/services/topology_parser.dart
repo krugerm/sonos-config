@@ -23,10 +23,12 @@ List<ZoneGroup> parseZoneGroupState(String zoneGroupStateXml) {
     }
     if (members.isEmpty) continue;
 
-    // Show visible members; if a group is only satellites (rare), keep it
-    // whole so the room is not silently lost.
-    var visible = members.where((m) => !m.invisible).toList();
-    if (visible.isEmpty) visible = members;
+    // Keep only visible members. A group with no visible member is not a
+    // user-facing room — it's a lone bonded Sub, an invisible bridge/Boost, or
+    // a satellite-only remnant. Surfacing it would give the UI a phantom room
+    // ("Sub") the user can't meaningfully select or control, so drop it.
+    final visible = members.where((m) => !m.invisible).toList();
+    if (visible.isEmpty) continue;
 
     final coordinator = visible.firstWhere(
       (m) => m.uuid == coordinatorUuid,

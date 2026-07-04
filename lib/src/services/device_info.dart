@@ -14,7 +14,8 @@ Future<String?> fetchDeviceModel(String host, {http.Client? client}) async {
         .timeout(const Duration(seconds: 4));
     if (resp.statusCode != 200) return null;
     final doc = XmlDocument.parse(resp.body);
-    final model = doc.findAllElements('modelName').firstOrNull?.innerText.trim();
+    final model =
+        doc.findAllElements('modelName').firstOrNull?.innerText.trim();
     return (model == null || model.isEmpty) ? null : model;
   } catch (_) {
     return null;

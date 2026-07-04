@@ -35,8 +35,11 @@ Household _twoRooms(List<String> visibleUuids) => Household(groups: [
         Group(id: u, coordinatorUuid: u, rooms: [
           Room(
               name: u,
-              coordinator:
-                  Device(uuid: u, roomName: u, host: '10.0.0.9', bondRole: BondRole.standalone),
+              coordinator: Device(
+                  uuid: u,
+                  roomName: u,
+                  host: '10.0.0.9',
+                  bondRole: BondRole.standalone),
               satellites: const []),
         ]),
     ]);
@@ -111,7 +114,10 @@ void main() {
 
   group('RenameRoomAction', () {
     final action = RenameRoomAction(
-        host: '10.0.0.1', uuid: 'BEAM', currentName: 'TV Room', newName: 'Lounge');
+        host: '10.0.0.1',
+        uuid: 'BEAM',
+        currentName: 'TV Room',
+        newName: 'Lounge');
 
     test('apply reads current attrs then sets the new name', () async {
       final soap = FakeSoapClient((a) => soapResponse(

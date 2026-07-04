@@ -1,5 +1,8 @@
 # Sonos Config
 
+[![CI](https://github.com/krugerm/personal-sonos/actions/workflows/ci.yml/badge.svg)](https://github.com/krugerm/personal-sonos/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A small, self-contained Flutter app to **discover and configure every Sonos
 speaker on your local network** — no Sonos account, no cloud, no login. It talks
 directly to your speakers over their local UPnP/SOAP interface, the same

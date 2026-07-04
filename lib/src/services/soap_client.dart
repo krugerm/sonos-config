@@ -47,8 +47,7 @@ class SonosSoapException implements Exception {
   final int? statusCode;
 
   @override
-  String toString() =>
-      'SonosSoapException(${statusCode ?? '-'}): $message';
+  String toString() => 'SonosSoapException(${statusCode ?? '-'}): $message';
 }
 
 /// A tiny SOAP client tailored to Sonos players.
@@ -57,7 +56,8 @@ class SonosSoapException implements Exception {
 /// handful of actions and hand-rolling the envelope keeps the dependency
 /// surface small and the behaviour predictable.
 class SoapClient {
-  SoapClient({http.Client? httpClient, this.timeout = const Duration(seconds: 5)})
+  SoapClient(
+      {http.Client? httpClient, this.timeout = const Duration(seconds: 5)})
       : _http = httpClient ?? http.Client();
 
   final http.Client _http;

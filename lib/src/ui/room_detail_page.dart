@@ -130,8 +130,7 @@ class RoomDetailPage extends StatelessWidget {
               onPressed: () => Navigator.of(ctx).pop(),
               child: const Text('Cancel')),
           FilledButton(
-              onPressed: () =>
-                  Navigator.of(ctx).pop(controller.text.trim()),
+              onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
               child: const Text('Rename')),
         ],
       ),
@@ -151,9 +150,7 @@ class RoomDetailPage extends StatelessWidget {
 
   IconData _roleIcon(BondRole role) => switch (role) {
         BondRole.sub => Icons.speaker,
-        BondRole.surroundLeft ||
-        BondRole.surroundRight =>
-          Icons.surround_sound,
+        BondRole.surroundLeft || BondRole.surroundRight => Icons.surround_sound,
         _ => Icons.speaker,
       };
 

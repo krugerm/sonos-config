@@ -20,7 +20,8 @@ class _FakeApi extends SonosApi {
 
 class _FakeDiscovery extends SsdpDiscovery {
   @override
-  Future<Set<String>> discover({Duration timeout = const Duration(seconds: 3)}) async =>
+  Future<Set<String>> discover(
+          {Duration timeout = const Duration(seconds: 3)}) async =>
       {'10.0.0.1'};
 }
 
@@ -46,7 +47,8 @@ const _household = Household(groups: [
 ]);
 
 void main() {
-  testWidgets('system map renders rooms once the store is ready', (tester) async {
+  testWidgets('system map renders rooms once the store is ready',
+      (tester) async {
     final store = HouseholdStore(
       api: _FakeApi(_household),
       discovery: _FakeDiscovery(),

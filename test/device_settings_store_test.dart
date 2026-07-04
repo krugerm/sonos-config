@@ -27,7 +27,8 @@ void main() {
         case 'GetLEDState':
           return soapResponse('<CurrentLEDState>On</CurrentLEDState>');
         case 'GetButtonLockState':
-          return soapResponse('<CurrentButtonLockState>Off</CurrentButtonLockState>');
+          return soapResponse(
+              '<CurrentButtonLockState>Off</CurrentButtonLockState>');
         default:
           return soapResponse('');
       }

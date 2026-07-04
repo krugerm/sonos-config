@@ -19,7 +19,8 @@ class _FakeDiscovery extends SsdpDiscovery {
   _FakeDiscovery(this._hosts);
   final Set<String> _hosts;
   @override
-  Future<Set<String>> discover({Duration timeout = const Duration(seconds: 3)}) async =>
+  Future<Set<String>> discover(
+          {Duration timeout = const Duration(seconds: 3)}) async =>
       _hosts;
 }
 
@@ -45,7 +46,8 @@ const _household = Household(groups: [
 ]);
 
 void main() {
-  test('initialize discovers, loads, and enriches devices with models', () async {
+  test('initialize discovers, loads, and enriches devices with models',
+      () async {
     final store = HouseholdStore(
       api: _FakeApi(_household),
       discovery: _FakeDiscovery({'10.0.0.1'}),
@@ -59,7 +61,8 @@ void main() {
     expect(store.household!.deviceByUuid('BEAM')!.model, 'Sonos Beam');
     expect(store.household!.deviceByUuid('SUB')!.model, 'Sonos Sub');
     // Enrichment feeds capability derivation.
-    expect(store.household!.deviceByUuid('BEAM')!.capabilities.canBondSub, isTrue);
+    expect(
+        store.household!.deviceByUuid('BEAM')!.capabilities.canBondSub, isTrue);
     store.dispose();
   });
 

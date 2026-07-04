@@ -41,11 +41,11 @@ void main() {
 
   group('identity / device', () {
     test('getZoneAttributes parses all four fields', () async {
-      soap = FakeSoapClient((action) => soapResponse(
-          '<CurrentZoneName>TV Room</CurrentZoneName>'
-          '<CurrentIcon>x-rincon-roomicon:tv</CurrentIcon>'
-          '<CurrentConfiguration>1</CurrentConfiguration>'
-          '<CurrentTargetRoomName></CurrentTargetRoomName>'));
+      soap = FakeSoapClient(
+          (action) => soapResponse('<CurrentZoneName>TV Room</CurrentZoneName>'
+              '<CurrentIcon>x-rincon-roomicon:tv</CurrentIcon>'
+              '<CurrentConfiguration>1</CurrentConfiguration>'
+              '<CurrentTargetRoomName></CurrentTargetRoomName>'));
       api = SonosApi(client: soap);
       final attrs = await api.getZoneAttributes('10.0.0.1');
       expect(attrs.name, 'TV Room');

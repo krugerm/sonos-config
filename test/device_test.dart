@@ -25,10 +25,14 @@ void main() {
     });
 
     test('equality is by uuid + host', () {
-      expect(beam, const Device(
-        uuid: 'RINCON_BEAM', roomName: 'X', host: '192.168.4.185',
-        bondRole: BondRole.standalone,
-      ));
+      expect(
+          beam,
+          const Device(
+            uuid: 'RINCON_BEAM',
+            roomName: 'X',
+            host: '192.168.4.185',
+            bondRole: BondRole.standalone,
+          ));
       expect(beam == beam.copyWith(host: '10.0.0.1'), isFalse);
     });
   });

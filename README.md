@@ -13,6 +13,9 @@ and [SoCo](https://github.com/SoCo/SoCo) use.
 - **Whole-house topology** — rooms, stereo pairs and grouped zones are read from
   a single `ZoneGroupTopology` query, so one reachable speaker maps the lot.
 - **Playback control** per group: play / pause / next / previous and seek.
+- **Shuffle & repeat** — toggle shuffle and cycle repeat off / all / one.
+- **Favorites** — browse your Sonos Favorites and start one on any room.
+- **Grouping** — add or remove rooms from a group for synchronised playback.
 - **Now Playing** with album art, title, artist, album and a live progress bar.
 - **Volume** — group volume + mute, plus a per-speaker volume slider for every
   member of a grouped zone.
@@ -29,8 +32,11 @@ directly:
 | Concern            | Mechanism                                                             |
 | ------------------ | -------------------------------------------------------------------- |
 | Discovery          | SSDP `M-SEARCH` for `urn:schemas-upnp-org:device:ZonePlayer:1`        |
-| Topology / grouping| `ZoneGroupTopology#GetZoneGroupState`                                 |
+| Topology           | `ZoneGroupTopology#GetZoneGroupState`                                 |
 | Transport          | `AVTransport` — `Play`, `Pause`, `Next`, `Previous`, `Seek`, position |
+| Shuffle / repeat   | `AVTransport` — `GetTransportSettings` / `SetPlayMode`               |
+| Favorites / queue  | `ContentDirectory#Browse` (`FV:2`, `Q:0`) + `SetAVTransportURI`       |
+| Grouping           | `SetAVTransportURI` `x-rincon:` / `BecomeCoordinatorOfStandaloneGroup`|
 | Group volume       | `GroupRenderingControl` — `GetGroupVolume` / `SetGroupVolume` / mute  |
 | Per-speaker volume | `RenderingControl` — `GetVolume` / `SetVolume`                        |
 | Track metadata     | DIDL-Lite parsed from `GetPositionInfo`                               |
@@ -65,7 +71,9 @@ lib/
     ui/
       home_page.dart              responsive master–detail / stacked layout
       speaker_list_panel.dart     the rooms list
-      now_playing_panel.dart      art, seek bar, transport, volumes
+      now_playing_panel.dart      art, seek bar, transport, play modes, volumes
+      favorites_sheet.dart        browse & play Sonos Favorites
+      group_sheet.dart            add/remove rooms from a group
       widgets/                    reusable UI pieces
 test/
   parsers_test.dart               topology / DIDL / metadata parsing
@@ -116,9 +124,19 @@ speaker.
 
 ## Notes & limitations
 
-- Browsing music services / starting new content isn't implemented — this
-  controls **what's already queued/playing**, adjusts transport, grouping view
-  and volume. Extending `SonosApi` with `SetAVTransportURI` + favorites is the
-  natural next step.
+- Favorites cover the common "start something playing" path. Deep browsing of a
+  music service's full catalogue (search, drilling into playlists/albums) isn't
+  implemented — the `ContentDirectory#Browse` plumbing in `SonosApi` is the hook
+  to extend it.
 - Discovery relies on the controller device sharing the speakers' subnet;
   VLAN-segmented IoT networks may need the multicast fallback or an mDNS reflector.
+
+## Verified against real hardware?
+
+The networking, SOAP wire format and control flow are covered by unit and
+integration tests (17 tests, parsers + full controller flow with injected
+fakes), and the app builds for Linux/Android/iOS/macOS/Windows/web. It has
+**not** yet been exercised against physical speakers from CI — that requires
+running on the same LAN as your Sonos system. Do a `flutter run` at home with
+your soundbar, Sub and Sonos Ones powered on to confirm discovery and control
+end-to-end.

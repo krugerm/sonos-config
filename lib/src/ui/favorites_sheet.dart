@@ -85,14 +85,23 @@ class FavoritesSheet extends StatelessWidget {
                           : Text(fav.subtitle!,
                               maxLines: 1, overflow: TextOverflow.ellipsis),
                       trailing: const Icon(Icons.play_arrow_rounded),
-                      onTap: () {
-                        controller.playFavorite(group, fav);
+                      onTap: () async {
+                        // Capture the app-level messenger before we pop the
+                        // sheet so we can report the real outcome after the
+                        // async call, without touching a defunct context.
+                        final messenger = ScaffoldMessenger.of(context);
                         Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        final started =
+                            await controller.playFavorite(group, fav);
+                        messenger.showSnackBar(
                           SnackBar(
-                            content: Text('Playing "${fav.title}" on '
-                                '${group.displayName}'),
-                            duration: const Duration(seconds: 2),
+                            content: Text(started
+                                ? 'Playing "${fav.title}" on '
+                                    '${group.displayName}'
+                                : "Can't play \"${fav.title}\" from here — "
+                                    'this favorite has no direct stream (open '
+                                    'it in the Sonos app)'),
+                            duration: const Duration(seconds: 3),
                           ),
                         );
                       },

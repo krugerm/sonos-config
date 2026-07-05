@@ -209,10 +209,12 @@ Verified end-to-end against a real **Sonos Beam home theater**:
 
 Other models *should* work — they expose the same local UPnP interface — but
 haven't been confirmed yet. **Running it on a different setup? Please report
-it** so we can grow this list: open a thread in
-[Discussions](https://github.com/krugerm/sonos-config/discussions) with your
-models, topology, and what worked (a `GetZoneGroupState` capture helps —
-anonymize any `RINCON_…` IDs first).
+it** so we can grow this list. The easiest way is in the app: tap **Report a
+problem** (the flag icon) → *Prepare report* → *Save file & open GitHub issue*.
+It captures the raw topology, device descriptions, and an EQ-support probe —
+**anonymized on your device** (serials, IPs, and account tokens stripped) — so a
+fix can be reproduced offline. Prefer to chat first? Open a thread in
+[Discussions](https://github.com/krugerm/sonos-config/discussions).
 
 > Note: the read/config paths aren't exercised in CI — an isolated runner has no
 > route to a home LAN — so testing happens on real speakers on the same Wi-Fi.

@@ -23,3 +23,18 @@ Future<String?> fetchDeviceModel(String host, {http.Client? client}) async {
     if (client == null) c.close();
   }
 }
+
+/// Fetches the raw `device_description.xml` body (for diagnostics), or null.
+Future<String?> fetchDeviceDescription(String host, {http.Client? client}) async {
+  final c = client ?? http.Client();
+  try {
+    final resp = await c
+        .get(Uri.parse('http://$host:1400/xml/device_description.xml'))
+        .timeout(const Duration(seconds: 4));
+    return resp.statusCode == 200 ? resp.body : null;
+  } catch (_) {
+    return null;
+  } finally {
+    if (client == null) c.close();
+  }
+}

@@ -6,6 +6,7 @@ import '../models/room.dart';
 import '../state/household_store.dart';
 import 'device_detail_page.dart';
 import 'product_glyph.dart';
+import 'report_problem_page.dart';
 import 'room_detail_page.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -24,6 +25,13 @@ class SystemMapPage extends StatelessWidget {
             tooltip: 'Rescan',
             icon: const Icon(Icons.refresh),
             onPressed: () => context.read<HouseholdStore>().initialize(),
+          ),
+          IconButton(
+            tooltip: 'Report a problem',
+            icon: const Icon(Icons.flag_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ReportProblemPage()),
+            ),
           ),
           IconButton(
             tooltip: 'About',

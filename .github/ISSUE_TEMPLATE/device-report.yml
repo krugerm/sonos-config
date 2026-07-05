@@ -1,0 +1,33 @@
+name: Device report
+description: Report a Sonos setup where the app doesn't fully work
+title: "Device report: "
+labels: ["device-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping grow device support! The easiest way to file this is
+        **from inside the app**: tap **Report a problem** (the flag icon) →
+        *Prepare report* → *Save file & open GitHub issue*, then attach the saved
+        `sonos-diagnostics.json` below. It's anonymized on your device — serials,
+        IPs, and account tokens are stripped before anything leaves it.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What went wrong?
+      placeholder: e.g. "Sub bonded but the sub-tuning controls never appear"
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics capture
+      description: Attach the `sonos-diagnostics.json` file (drag it in), or paste its contents here.
+      render: json
+  - type: input
+    id: models
+    attributes:
+      label: Speaker models
+      placeholder: e.g. Arc, Sub Mini, Era 100 ×2
+    validations:
+      required: false

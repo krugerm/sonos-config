@@ -42,6 +42,13 @@ class SonosApi {
     return parseHousehold(xml);
   }
 
+  /// The raw (decoded) `ZoneGroupState` XML — captured for diagnostics.
+  Future<String> getZoneGroupStateRaw(String host) async {
+    final resp = await _soap.invoke(
+        host, SonosService.zoneGroupTopology, 'GetZoneGroupState');
+    return resp.arg('ZoneGroupState') ?? '';
+  }
+
   // ---- Bonding / topology config ----------------------------------------
 
   /// Bonds a satellite (surround or Sub) into a home-theater [primaryHost].

@@ -31,10 +31,9 @@ successfully; `flutter analyze` clean; 53 tests pass.
       push/PR.
 
 ### Docs
-- [~] **README for newcomers** — logo, badges, disclaimer, install steps,
-      troubleshooting, and a Screenshots section are in. **Real screenshots still
-      needed** (a maintainer must add them — automated capture is blocked by macOS
-      Screen Recording permission in this environment).
+- [x] **README for newcomers** — logo, badges, disclaimer, install steps,
+      troubleshooting, and four mobile-format screenshots (system map, room
+      config, device audio, home-theater tuning) with the UUID redacted.
 
 ## P1 — Soon after launch
 

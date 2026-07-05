@@ -50,11 +50,18 @@ Spotify or wherever you like; use this to wire the system up.
 
 ## Screenshots
 
-> _Screenshots welcome — a PR adding them is a great first contribution._ The app
-> has three screens: the **system map** (rooms, each showing its bonded devices
-> as role chips), **room detail** (rename, bond/unbond a Sub, jump to a device),
-> and **device detail** (diagnostics plus capability-gated audio, EQ, and device
-> settings). Run `flutter run -d macos` to see them.
+<p align="center">
+  <img src="docs/screenshots/system-map.png" width="205" alt="System map — rooms and their bonded devices">
+  &nbsp;
+  <img src="docs/screenshots/room-detail.png" width="205" alt="Room detail — grouping, bonding, group audio">
+  &nbsp;
+  <img src="docs/screenshots/device-detail.png" width="205" alt="Device detail — diagnostics and audio">
+  &nbsp;
+  <img src="docs/screenshots/device-detail-2.png" width="205" alt="Device detail — home-theater tuning and device settings">
+</p>
+
+<p align="center"><em>System map · room config (grouping, sub/surround bonding, group audio) ·
+device audio &amp; EQ · home-theater tuning &amp; device settings</em></p>
 
 ## How it works
 

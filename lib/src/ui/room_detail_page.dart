@@ -8,7 +8,9 @@ import '../models/room.dart';
 import '../state/household_store.dart';
 import 'action_runner.dart';
 import 'device_detail_page.dart';
+import 'theme.dart';
 import 'ui_util.dart';
+import 'widgets.dart';
 
 /// Configuration for a single room: rename, Sub bonding, and its devices.
 class RoomDetailPage extends StatelessWidget {
@@ -27,10 +29,13 @@ class RoomDetailPage extends StatelessWidget {
             body: Center(child: Text('This room is no longer available.')),
           );
         }
+        final scheme = Theme.of(context).colorScheme;
         return Scaffold(
           appBar: AppBar(title: Text(room.name)),
           body: ListView(
+            padding: const EdgeInsets.only(bottom: 28),
             children: [
+              const Eyebrow('Configuration'),
               ListTile(
                 leading: const Icon(Icons.drive_file_rename_outline),
                 title: const Text('Rename room'),
@@ -38,16 +43,25 @@ class RoomDetailPage extends StatelessWidget {
                 onTap: () => _rename(context, room),
               ),
               ..._subSection(context, store, room),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
-                child: Text('DEVICES', style: TextStyle(letterSpacing: 1)),
-              ),
+              const Eyebrow('Devices'),
               for (final d in room.devices)
                 ListTile(
-                  leading: Icon(_roleIcon(d.bondRole)),
+                  leading: Icon(_roleIcon(d.bondRole),
+                      color: scheme.onSurface.withValues(alpha: 0.7)),
                   title: Text(d.model ?? d.roomName),
-                  subtitle: Text('${_roleLabel(d.bondRole)} · ${d.host}'),
-                  trailing: const Icon(Icons.chevron_right),
+                  subtitle: Text(d.host,
+                      style: monoStyle(context,
+                          size: 11.5,
+                          color: scheme.onSurface.withValues(alpha: 0.55))),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RoleChip(d.bondRole),
+                      const SizedBox(width: 8),
+                      Icon(Icons.chevron_right,
+                          color: scheme.onSurface.withValues(alpha: 0.35)),
+                    ],
+                  ),
                   onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => DeviceDetailPage(device: d),
                   )),
@@ -152,15 +166,5 @@ class RoomDetailPage extends StatelessWidget {
         BondRole.sub => Icons.speaker,
         BondRole.surroundLeft || BondRole.surroundRight => Icons.surround_sound,
         _ => Icons.speaker,
-      };
-
-  String _roleLabel(BondRole role) => switch (role) {
-        BondRole.coordinator => 'Primary',
-        BondRole.sub => 'Subwoofer',
-        BondRole.surroundLeft => 'Left surround',
-        BondRole.surroundRight => 'Right surround',
-        BondRole.stereoLeft => 'Left (stereo)',
-        BondRole.stereoRight => 'Right (stereo)',
-        BondRole.standalone => 'Standalone',
       };
 }

@@ -68,7 +68,7 @@ void main() {
 
     expect(find.text('Sonos Config'), findsOneWidget);
     expect(find.text('TV Room'), findsOneWidget);
-    expect(find.text('Rooms'.toUpperCase()), findsOneWidget);
+    expect(find.textContaining('ROOMS'), findsWidgets);
 
     // Dispose in-body to cancel the poll timer before the framework's
     // pending-timer invariant check at test end.

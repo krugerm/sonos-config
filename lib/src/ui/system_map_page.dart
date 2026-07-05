@@ -6,6 +6,8 @@ import '../models/room.dart';
 import '../state/household_store.dart';
 import 'device_detail_page.dart';
 import 'room_detail_page.dart';
+import 'theme.dart';
+import 'widgets.dart';
 
 /// Home screen: the read-only system map plus entry points into configuration.
 class SystemMapPage extends StatelessWidget {
@@ -47,22 +49,21 @@ class SystemMapPage extends StatelessWidget {
           switch (store.status) {
             case HouseholdStatus.idle:
             case HouseholdStatus.searching:
-              return const _Centered(
-                  child: Column(mainAxisSize: MainAxisSize.min, children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Searching for Sonos players…'),
-              ]));
+              return const _Busy(label: 'Searching for Sonos players…');
             case HouseholdStatus.empty:
               return _Message(
-                icon: Icons.speaker_group_outlined,
-                text: 'No Sonos players found on this network.',
+                icon: Icons.wifi_find_outlined,
+                title: 'No speakers found',
+                body:
+                    'Make sure this device is on the same Wi-Fi as your Sonos '
+                    'system, then rescan.',
                 onRetry: () => context.read<HouseholdStore>().initialize(),
               );
             case HouseholdStatus.error:
               return _Message(
                 icon: Icons.error_outline,
-                text: store.error ?? 'Something went wrong.',
+                title: 'Discovery failed',
+                body: store.error ?? 'Something went wrong.',
                 onRetry: () => context.read<HouseholdStore>().initialize(),
               );
             case HouseholdStatus.ready:
@@ -88,12 +89,21 @@ class _SystemList extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: store.refresh,
       child: ListView(
+        padding: const EdgeInsets.only(bottom: 28),
         children: [
-          const _SectionHeader('Rooms'),
-          for (final room in rooms) _RoomTile(room: room),
+          Eyebrow('Rooms · ${rooms.length}'),
+          for (final room in rooms)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: _RoomCard(room: room),
+            ),
           if (unbonded.isNotEmpty) ...[
-            const _SectionHeader('Unbonded devices'),
-            for (final d in unbonded) _DeviceTile(device: d),
+            const Eyebrow('Unbonded devices'),
+            for (final d in unbonded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: _DeviceCard(device: d),
+              ),
           ],
         ],
       ),
@@ -101,91 +111,201 @@ class _SystemList extends StatelessWidget {
   }
 }
 
-class _RoomTile extends StatelessWidget {
-  const _RoomTile({required this.room});
+class _RoomCard extends StatelessWidget {
+  const _RoomCard({required this.room});
 
   final Room room;
 
   @override
   Widget build(BuildContext context) {
-    final members = room.devices.length;
-    return ListTile(
-      leading: const Icon(Icons.meeting_room_outlined),
-      title: Text(room.name),
-      subtitle: Text(room.coordinator.model ??
-          '$members device${members == 1 ? '' : 's'}'),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => RoomDetailPage(coordinatorUuid: room.coordinator.uuid),
-      )),
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) =>
+              RoomDetailPage(coordinatorUuid: room.coordinator.uuid),
+        )),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const _Avatar(icon: Icons.meeting_room_outlined),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(room.name,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${room.coordinator.model ?? 'Sonos player'}  ·  ${room.coordinator.host}',
+                          style: monoStyle(context,
+                              size: 11.5,
+                              color: scheme.onSurface.withValues(alpha: 0.55)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right,
+                      color: scheme.onSurface.withValues(alpha: 0.35)),
+                ],
+              ),
+              if (room.satellites.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final s in room.satellites) RoleChip(s.bondRole),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _DeviceTile extends StatelessWidget {
-  const _DeviceTile({required this.device});
+class _DeviceCard extends StatelessWidget {
+  const _DeviceCard({required this.device});
 
   final Device device;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.subdirectory_arrow_right),
-      title: Text(device.model ?? device.roomName),
-      subtitle: const Text('Unbonded — tap to configure'),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => DeviceDetailPage(device: device),
-      )),
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => DeviceDetailPage(device: device),
+        )),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              _Avatar(icon: Icons.link_off, tint: scheme.secondary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(device.model ?? device.roomName,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text('Unbonded  ·  ${device.host}',
+                        style: monoStyle(context,
+                            size: 11.5,
+                            color: scheme.onSurface.withValues(alpha: 0.55))),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right,
+                  color: scheme.onSurface.withValues(alpha: 0.35)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title);
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.icon, this.tint});
 
-  final String title;
+  final IconData icon;
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-      child: Text(title.toUpperCase(),
-          style: theme.textTheme.labelSmall
-              ?.copyWith(color: theme.colorScheme.primary, letterSpacing: 1)),
+    final color = tint ?? Theme.of(context).colorScheme.primary;
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Icon(icon, size: 20, color: color),
     );
   }
 }
 
-class _Centered extends StatelessWidget {
-  const _Centered({required this.child});
-  final Widget child;
+class _Busy extends StatelessWidget {
+  const _Busy({required this.label});
+  final String label;
+
   @override
-  Widget build(BuildContext context) => Center(child: child);
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(
+              width: 30,
+              height: 30,
+              child: CircularProgressIndicator(strokeWidth: 3)),
+          const SizedBox(height: 18),
+          Text(label,
+              style: TextStyle(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6))),
+        ],
+      ),
+    );
+  }
 }
 
 class _Message extends StatelessWidget {
-  const _Message(
-      {required this.icon, required this.text, required this.onRetry});
+  const _Message({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.onRetry,
+  });
 
   final IconData icon;
-  final String text;
+  final String title;
+  final String body;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return _Centered(
+    final scheme = Theme.of(context).colorScheme;
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48),
-            const SizedBox(height: 16),
-            Text(text, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            FilledButton.tonal(onPressed: onRetry, child: const Text('Rescan')),
+            Icon(icon, size: 44, color: scheme.primary),
+            const SizedBox(height: 18),
+            Text(title,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Text(body,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: scheme.onSurface.withValues(alpha: 0.6),
+                    height: 1.4)),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Rescan'),
+            ),
           ],
         ),
       ),

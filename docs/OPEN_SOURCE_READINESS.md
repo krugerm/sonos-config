@@ -56,10 +56,16 @@ successfully; `flutter analyze` clean; 48 tests pass.
 - [ ] **Desktop master–detail layout** for wide screens (current UI is
       navigation-based).
 
+### Visual design & usability
+- [ ] **Improve the UI styling.** The screens are functional but use default
+      Material 3 styling. Give the app a cohesive, intentional look: a considered
+      color scheme (tie it to the cyan→green icon), typographic hierarchy,
+      polished cards/list items, consistent iconography and spacing, and nicer
+      empty/loading/error states.
+
 ### Robustness
-- [ ] **Ethernet discovery.** `network_info_plus.getWifiIP()` is null on a wired
-      Mac, so the unicast fallback can't compute a subnet. Enumerate
-      `NetworkInterface`s instead.
+- [x] **Ethernet discovery.** `network_info_plus.getWifiIP()` is null on a wired
+      Mac; now falls back to enumerating non-loopback `NetworkInterface`s.
 - [ ] Broaden tests: end-to-end undo, the verify-timeout (`unconfirmed`) UX,
       per-model capability edge cases.
 - [ ] Accessibility pass (semantics labels on icon buttons/sliders, dynamic type,

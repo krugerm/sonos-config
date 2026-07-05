@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../models/device.dart';
 import '../state/device_settings_store.dart';
+import 'theme.dart';
+import 'widgets.dart';
 
 /// Read-only diagnostics plus capability-gated settings for one device.
 class DeviceDetailPage extends StatefulWidget {
@@ -34,12 +36,19 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       body: Consumer<DeviceSettingsStore>(
         builder: (context, store, _) {
           final s = store.settings;
-          final api = store; // for setters
           return ListView(
+            padding: const EdgeInsets.only(bottom: 28),
             children: [
-              _DiagnosticsCard(device: device),
-              if (store.loading) const LinearProgressIndicator(),
-              _section(context, 'Audio'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: _DiagnosticsCard(device: device),
+              ),
+              if (store.loading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: LinearProgressIndicator(),
+                ),
+              const Eyebrow('Audio'),
               _slider(
                 label: 'Volume',
                 value: _volume ?? s.volume.toDouble(),
@@ -48,7 +57,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 display: '${(_volume ?? s.volume.toDouble()).round()}',
                 onChanged: (v) => setState(() => _volume = v),
                 onChangeEnd: (v) {
-                  api.setVolume(device, v.round());
+                  store.setVolume(device, v.round());
                   setState(() => _volume = null);
                 },
               ),
@@ -59,10 +68,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                   min: -10,
                   max: 10,
                   divisions: 20,
-                  display: '${(_bass ?? s.bass.toDouble()).round()}',
+                  display: _signed(_bass ?? s.bass.toDouble()),
                   onChanged: (v) => setState(() => _bass = v),
                   onChangeEnd: (v) {
-                    api.setBass(device, v.round());
+                    store.setBass(device, v.round());
                     setState(() => _bass = null);
                   },
                 ),
@@ -72,24 +81,24 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                   min: -10,
                   max: 10,
                   divisions: 20,
-                  display: '${(_treble ?? s.treble.toDouble()).round()}',
+                  display: _signed(_treble ?? s.treble.toDouble()),
                   onChanged: (v) => setState(() => _treble = v),
                   onChangeEnd: (v) {
-                    api.setTreble(device, v.round());
+                    store.setTreble(device, v.round());
                     setState(() => _treble = null);
                   },
                 ),
               ],
               if (caps.canStereoPair)
                 _slider(
-                  label: 'Balance (L–R)',
+                  label: 'Balance',
                   value: _balance ?? s.balance.toDouble(),
                   min: -100,
                   max: 100,
                   display: _balanceLabel(_balance ?? s.balance.toDouble()),
                   onChanged: (v) => setState(() => _balance = v),
                   onChangeEnd: (v) {
-                    api.setBalance(device, v.round());
+                    store.setBalance(device, v.round());
                     setState(() => _balance = null);
                   },
                 ),
@@ -97,36 +106,35 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 SwitchListTile(
                   title: const Text('Loudness'),
                   value: s.loudness,
-                  onChanged: (v) => api.setLoudness(device, v),
+                  onChanged: (v) => store.setLoudness(device, v),
                 ),
               if (caps.hasNightMode) ...[
-                _section(context, 'Home theater'),
+                const Eyebrow('Home theater'),
                 SwitchListTile(
                   title: const Text('Night mode'),
-                  subtitle: const Text('Reduce loud effects at low volume'),
+                  subtitle: const Text('Soften loud effects at low volume'),
                   value: s.nightMode,
-                  onChanged: (v) => api.setNightMode(device, v),
+                  onChanged: (v) => store.setNightMode(device, v),
                 ),
                 SwitchListTile(
                   title: const Text('Speech enhancement'),
                   value: s.speechEnhancement,
-                  onChanged: (v) => api.setSpeechEnhancement(device, v),
+                  onChanged: (v) => store.setSpeechEnhancement(device, v),
                 ),
               ],
-              _section(context, 'Device'),
+              const Eyebrow('Device'),
               if (caps.hasLed)
                 SwitchListTile(
                   title: const Text('Status light'),
                   value: s.ledOn,
-                  onChanged: (v) => api.setLed(device, v),
+                  onChanged: (v) => store.setLed(device, v),
                 ),
               if (caps.hasButtonLock)
                 SwitchListTile(
                   title: const Text('Lock touch controls'),
                   value: s.buttonLocked,
-                  onChanged: (v) => api.setButtonLock(device, v),
+                  onChanged: (v) => store.setButtonLock(device, v),
                 ),
-              const SizedBox(height: 24),
             ],
           );
         },
@@ -134,14 +142,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     );
   }
 
-  Widget _section(BuildContext context, String title) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-        child: Text(title.toUpperCase(),
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(letterSpacing: 1)),
-      );
+  String _signed(double v) => v.round() > 0 ? '+${v.round()}' : '${v.round()}';
 
   Widget _slider({
     required String label,
@@ -154,10 +155,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     int? divisions,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 12, 0),
       child: Row(
         children: [
-          SizedBox(width: 96, child: Text(label)),
+          SizedBox(width: 84, child: Text(label)),
           Expanded(
             child: Slider(
               value: value.clamp(min, max),
@@ -168,7 +169,11 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
               onChangeEnd: onChangeEnd,
             ),
           ),
-          SizedBox(width: 44, child: Text(display, textAlign: TextAlign.end)),
+          SizedBox(
+            width: 40,
+            child: Text(display,
+                textAlign: TextAlign.end, style: monoStyle(context, size: 12)),
+          ),
         ],
       ),
     );
@@ -188,34 +193,29 @@ class _DiagnosticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rows = <(String, String)>[
-      ('Model', device.model ?? 'Unknown'),
-      ('Room', device.roomName),
-      ('IP address', device.host),
-      ('Firmware', device.firmware ?? '—'),
-      ('UUID', device.uuid),
-    ];
     return Card(
-      margin: const EdgeInsets.all(16),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final (k, v) in rows)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                        width: 96,
-                        child: Text(k,
-                            style: Theme.of(context).textTheme.labelMedium)),
-                    Expanded(child: Text(v)),
-                  ],
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    device.model ?? device.roomName,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
                 ),
-              ),
+                RoleChip(device.bondRole),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SpecRow(label: 'Room', value: device.roomName),
+            SpecRow(label: 'IP address', value: device.host),
+            SpecRow(label: 'Firmware', value: device.firmware ?? '—'),
+            SpecRow(label: 'UUID', value: device.uuid),
           ],
         ),
       ),

@@ -6,6 +6,7 @@ import 'src/state/action_executor.dart';
 import 'src/state/device_settings_store.dart';
 import 'src/state/household_store.dart';
 import 'src/ui/system_map_page.dart';
+import 'src/ui/theme.dart';
 
 void main() {
   runApp(const SonosConfigApp());
@@ -44,7 +45,6 @@ class _SonosConfigAppState extends State<SonosConfigApp> {
 
   @override
   Widget build(BuildContext context) {
-    const seed = Color(0xFF1DB954);
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<HouseholdStore>.value(value: _household),
@@ -54,15 +54,8 @@ class _SonosConfigAppState extends State<SonosConfigApp> {
       child: MaterialApp(
         title: 'Sonos Config',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: seed),
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-              seedColor: seed, brightness: Brightness.dark),
-        ),
+        theme: appTheme(Brightness.light),
+        darkTheme: appTheme(Brightness.dark),
         themeMode: ThemeMode.system,
         home: const SystemMapPage(),
       ),

@@ -32,16 +32,21 @@ Spotify or wherever you like; use this to wire the system up.
   unicast subnet-scan fallback for Wi-Fi that blocks multicast.
 - **System map** — every player with its model, IP, firmware, and how rooms,
   bonds and groups are wired, from a single `ZoneGroupTopology` query.
-- **Bonding** the official app struggles with — bond/unbond a **Sub**, create or
-  split **stereo pairs**, and manage **home-theater surrounds**.
+- **Bonding & topology** the official app struggles with — bond/unbond a **Sub**,
+  add/remove **home-theater surrounds**, create/split **stereo pairs**, and
+  **group/ungroup rooms** (party mode).
 - **Room identity** — rename rooms, toggle the status LED, lock touch controls.
-- **Audio tuning** — per-speaker volume + balance, bass/treble, loudness, and
-  (on home-theater bars) night mode / speech enhancement.
-- **Guided & safe** — every change shows a plain-English before/after preview,
-  applies, then **verifies the result after the speaker reboots**, with one-tap
-  **undo** where a clean inverse exists. It never claims success it didn't see.
-- **Capability-aware UI** — controls appear only when the device supports them
-  (a Beam offers night mode; a One SL offers stereo pairing; a Sub neither).
+- **Audio tuning** — per-speaker volume + mute + balance, bass/treble, loudness;
+  **group volume/mute**; and on home-theater bars, night mode, speech, **sub
+  level/phase, surround level (TV & music), height, and audio delay**, plus
+  Trueplay and fixed line-out where supported.
+- **Guided & safe** — every topology change shows a plain-English before/after
+  preview, applies, then **verifies the result after the speaker reboots**, with
+  one-tap **undo** where a clean inverse exists. It never claims success it
+  didn't see.
+- **Capability-aware UI** — controls appear only when the device supports them.
+  See [`docs/DEVICE_CAPABILITIES.md`](docs/DEVICE_CAPABILITIES.md) for the full
+  per-device catalog of what's configurable.
 
 ## Screenshots
 

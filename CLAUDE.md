@@ -48,19 +48,22 @@ services/   the Sonos wire protocol
   sonos_api.dart         typed config methods (bonding, identity, audio/EQ)
 actions/    the mutating operations, each a ConfigAction
   config_action.dart     abstract: preview / apply / isSettled / inverse
-  topology_actions.dart  BondSub, UnbondSub, Create/SeparateStereoPair
+  topology_actions.dart  BondSub/UnbondSub, Add/RemoveSurround, Create/SeparateStereoPair
+  group_actions.dart     JoinGroup / LeaveGroup (party mode)
   rename_action.dart     RenameRoom
 state/
   household_store.dart      discovery + topology poll + model enrichment (source of truth)
   action_executor.dart      guided-safe lifecycle: apply -> verify -> undo
-  device_settings_store.dart per-device audio + LED/button settings
+  device_settings_store.dart per-device audio + HT tuning + LED/button settings
+  group_audio_store.dart    coordinator-scoped group volume + mute
 ui/         system_map_page (home), room_detail_page, device_detail_page,
-            action_runner (confirm -> progress -> result + undo), ui_util
+            action_runner (confirm -> progress -> result + undo), theme,
+            widgets (Eyebrow/RoleChip/SpecRow), product_glyph, ui_util
 ```
 
-- **State management:** `provider`. Three `ChangeNotifier` stores
-  (`HouseholdStore`, `ActionExecutor`, `DeviceSettingsStore`) built in
-  `main.dart` over one shared `SonosApi`.
+- **State management:** `provider`. Four `ChangeNotifier` stores
+  (`HouseholdStore`, `ActionExecutor`, `DeviceSettingsStore`, `GroupAudioStore`)
+  built in `main.dart` over one shared `SonosApi`.
 - **Read path:** `HouseholdStore` discovers hosts, loads the `Household` from any
   reachable player, enriches devices with model names, and polls. The UI is
   declarative over its immutable snapshot.
@@ -81,6 +84,13 @@ ui/         system_map_page (home), room_detail_page, device_detail_page,
   - stereo pair `ChannelMapSet`: `{leftUuid}:LF,LF;{rightUuid}:RF,RF`
   - HT satellite `HTSatChanMapSet`: `{primaryUuid}:LF,RF;{satUuid}:{LR|RR|SW}`
   - unbond: `RemoveHTSatellite(SatRoomUUID={satUuid})`
+- **Home-theater EQ targets the coordinator.** Sub/surround tuning
+  (`SetEQ` types `SubGain`, `SubPolarity`, `SurroundEnable`, `SurroundLevel`,
+  `MusicSurroundLevel`, `HeightChannelLevel`, `AudioDelay`) is set on the HT
+  primary (e.g. the Beam), **not** the satellites — they reject it (`803`).
+  EQ types are firmware-defined (not in the SCPD) and vary by model, so probe
+  with `GetEQ` and capability-gate. See `docs/DEVICE_CAPABILITIES.md` for the
+  full per-device catalog.
 - Keep XML parsing in `*_parser.dart`, not in widgets. Capability-gate UI
   controls off `Device.capabilities`, never off model-name checks in widgets.
 - A group whose members are all invisible (a lone bonded Sub / bridge) is not a

@@ -15,7 +15,7 @@ dependencies:
   # cover 90% of the wire work; SSDP discovery is done over a raw UDP socket
   # (dart:io) because Sonos has a few quirks that generic UPnP packages miss.
   http: ^1.2.2
-  xml: ^6.5.0
+  xml: ^7.0.1
 
   # State management.
   provider: ^6.1.2

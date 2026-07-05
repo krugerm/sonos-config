@@ -62,12 +62,13 @@ successfully; `flutter analyze` clean; 53 tests pass.
       bonded-role chip, card-based system map, Eyebrow section headers, and
       polished empty/loading/error states. (Visual sign-off pending a manual
       screenshot — capture is blocked in this environment.)
-- [~] **Product images per model.** Done: original schematic line-art glyphs by
-      form factor (soundbar / bookshelf / sub / portable / amp), shown as the
-      card avatar and — on the room card — as role-tinted device thumbnails
-      (replacing the text pills). Open: the actual black/white **finish** isn't
-      exposed by the local API (`variant` is an ambiguous hardware-revision
-      field), so colour-matching would need a manual model→finish table.
+- [x] **Product imagery — decided: keep original schematic glyphs.** Line-art
+      glyphs by form factor (soundbar / bookshelf / sub / portable / amp), shown
+      as the card avatar and as role-tinted device thumbnails on the room card.
+      Real product *photos* were considered and declined: bundling Sonos's
+      copyrighted marketing photos in a public repo is a takedown/legal risk, and
+      the local API exposes no colour-matched imagery. A future runtime image
+      loader (glyph fallback) could let users plug in licensed images if wanted.
 - [x] **Toasts** auto-dismiss (duration) and show a close button (global
       SnackBar theme).
 - [x] **App name/icon on macOS.** `PRODUCT_NAME`/`CFBundleName` set to "Sonos

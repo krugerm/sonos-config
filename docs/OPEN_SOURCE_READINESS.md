@@ -5,7 +5,7 @@ priority: **P0** = do before publishing, **P1** = soon after, **P2** =
 nice-to-have. Checked items are done.
 
 **Build status:** macOS, Android (APK), and iOS (`--no-codesign`) all build
-successfully; `flutter analyze` clean; 48 tests pass.
+successfully; `flutter analyze` clean; 53 tests pass.
 
 ## P0 — Before the repo goes public
 
@@ -19,10 +19,10 @@ successfully; `flutter analyze` clean; 48 tests pass.
       distinct public/store brand name is an optional maintainer decision.
 
 ### Correctness of the published surface
-- [ ] **Decide the web target.** Discovery uses `dart:io` `RawDatagramSocket`
-      (SSDP) + `network_info_plus`, which don't work on Flutter web — a web build
-      can't discover speakers. Drop the web target or document it as
-      non-functional. Same audit for Windows/Linux (never run against hardware).
+- [x] **Web target dropped** (SSDP/`dart:io` unavailable on web, so it could
+      never discover speakers). Windows/Linux scaffolds are kept but unverified —
+      they use the same `dart:io` paths as macOS, so they should work; noted as
+      needing a test run.
 - [x] **Repo hygiene** — `.serena/` gitignored; `build/`, `.dart_tool/` already
       ignored.
 
@@ -79,8 +79,9 @@ successfully; `flutter analyze` clean; 48 tests pass.
       Mac; now falls back to enumerating non-loopback `NetworkInterface`s.
 - [ ] Broaden tests: end-to-end undo, the verify-timeout (`unconfirmed`) UX,
       per-model capability edge cases.
-- [ ] Accessibility pass (semantics labels on icon buttons/sliders, dynamic type,
-      contrast in both themes).
+- [~] Accessibility: icon buttons have tooltips and sliders have value labels.
+      Still to do: a broader pass (dynamic type, contrast audit in both themes,
+      semantics on custom widgets).
 
 ### Release packaging (needs maintainer secrets/accounts)
 - [ ] macOS: code-sign + notarize; ship a DMG. (Current build is unsigned.)

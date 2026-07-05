@@ -41,5 +41,29 @@ void main() {
       expect(c.hasLed, isTrue);
       expect(c.hasButtonLock, isTrue);
     });
+
+    test('home-theater tuning flags gate on the HT primary', () {
+      final beam = Capabilities.forModel('Sonos Beam', BondRole.coordinator);
+      expect(beam.isHomeTheater, isTrue);
+      expect(beam.hasSubTuning, isTrue);
+      expect(beam.hasSurroundTuning, isTrue);
+      expect(beam.hasTrueplay, isTrue);
+      expect(beam.hasFixedOutput, isFalse);
+
+      final one = Capabilities.forModel('Sonos One SL', BondRole.standalone);
+      expect(one.isHomeTheater, isFalse);
+      expect(one.hasSubTuning, isFalse);
+      expect(one.hasTrueplay, isTrue);
+
+      final sub = Capabilities.forModel('Sonos Sub', BondRole.sub);
+      expect(sub.hasSubTuning, isFalse);
+      expect(sub.hasTrueplay, isFalse);
+    });
+
+    test('Amp exposes fixed line-out', () {
+      final amp = Capabilities.forModel('Sonos Amp', BondRole.standalone);
+      expect(amp.hasFixedOutput, isTrue);
+      expect(amp.isHomeTheater, isTrue); // Amp can drive a TV
+    });
   });
 }

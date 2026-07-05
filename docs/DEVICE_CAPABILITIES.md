@@ -122,12 +122,11 @@ stereo-pair/surround to validate `isSettled`.
 **Phase C — Group audio (coordinator).** Room-level group volume + mute via
 `GroupRenderingControl`, shown on the room detail.
 
-**Phase D — Home theater / TV (`HTControl`, gated to HT bars).** IR-repeater and
-TV LED-feedback toggles. (IR-remote learning deferred — multi-step wizard.)
+**Phase D — Home theater / TV (`HTControl`). 🛑 DO NOT PROCEED** (maintainer
+decision). IR-repeater / TV LED-feedback toggles are parked.
 
-**Phase E — Alarms & time (`AlarmClock`).** Alarms list with create/edit/delete
-and time-zone/server/format settings. *(Was flagged out of scope in the original
-spec, but it is genuinely configuration — treat as opt-in.)*
+**Phase E — Alarms & time (`AlarmClock`). 🛑 DO NOT PROCEED** (maintainer
+decision). Alarms and time settings are parked.
 
 **Out of scope (⛔).** Playback/queue/streaming services, music-service account
 management, `EnterConfigMode`, Trueplay chirp tuning, raw `SetString`.

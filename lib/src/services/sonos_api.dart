@@ -247,5 +247,85 @@ class SonosApi {
     await _setChannelVolume(host, 'RF', right);
   }
 
+  Future<bool> getMute(String host) async {
+    final resp = await _soap.invoke(
+        host, SonosService.renderingControl, 'GetMute',
+        arguments: {..._instance, ..._masterChannel});
+    return resp.arg('CurrentMute') == '1';
+  }
+
+  Future<void> setMute(String host, bool mute) =>
+      _soap.invoke(host, SonosService.renderingControl, 'SetMute', arguments: {
+        ..._instance,
+        ..._masterChannel,
+        'DesiredMute': mute ? '1' : '0',
+      }).then((_) {});
+
+  Future<bool> getOutputFixed(String host) async {
+    final resp = await _soap.invoke(
+        host, SonosService.renderingControl, 'GetOutputFixed',
+        arguments: _instance);
+    return resp.arg('CurrentFixed') == '1';
+  }
+
+  Future<void> setOutputFixed(String host, bool fixed) => _soap.invoke(
+          host, SonosService.renderingControl, 'SetOutputFixed', arguments: {
+        ..._instance,
+        'DesiredFixed': fixed ? '1' : '0'
+      }).then((_) {});
+
+  Future<bool> getTrueplay(String host) async {
+    final resp = await _soap.invoke(
+        host, SonosService.renderingControl, 'GetRoomCalibrationStatus',
+        arguments: _instance);
+    return resp.arg('RoomCalibrationEnabled') == '1';
+  }
+
+  Future<void> setTrueplay(String host, bool on) => _soap.invoke(
+          host, SonosService.renderingControl, 'SetRoomCalibrationStatus',
+          arguments: {
+            ..._instance,
+            'RoomCalibrationEnabled': on ? '1' : '0'
+          }).then((_) {});
+
+  // ---- Group audio (coordinator, GroupRenderingControl) -------------------
+
+  Future<int> getGroupVolume(String host) async {
+    final resp = await _soap.invoke(
+        host, SonosService.groupRenderingControl, 'GetGroupVolume',
+        arguments: _instance);
+    return resp.argInt('CurrentVolume') ?? 0;
+  }
+
+  Future<void> setGroupVolume(String host, int volume) =>
+      _soap.invoke(host, SonosService.groupRenderingControl, 'SetGroupVolume',
+          arguments: {
+            ..._instance,
+            'DesiredVolume': volume.clamp(0, 100).toString(),
+          }).then((_) {});
+
+  Future<bool> getGroupMute(String host) async {
+    final resp = await _soap.invoke(
+        host, SonosService.groupRenderingControl, 'GetGroupMute',
+        arguments: _instance);
+    return resp.arg('CurrentMute') == '1';
+  }
+
+  Future<void> setGroupMute(String host, bool mute) => _soap.invoke(
+      host, SonosService.groupRenderingControl, 'SetGroupMute',
+      arguments: {..._instance, 'DesiredMute': mute ? '1' : '0'}).then((_) {});
+
+  // ---- Home-theater EQ (coordinator) --------------------------------------
+  // Sub/surround tuning is set on the HT primary via SetEQ; use getEq/setEq
+  // with these EQ types (probed as supported on the Beam).
+
+  static const eqSubGain = 'SubGain';
+  static const eqSubPolarity = 'SubPolarity';
+  static const eqSurroundEnable = 'SurroundEnable';
+  static const eqSurroundLevel = 'SurroundLevel';
+  static const eqMusicSurroundLevel = 'MusicSurroundLevel';
+  static const eqHeightChannelLevel = 'HeightChannelLevel';
+  static const eqAudioDelay = 'AudioDelay';
+
   void close() => _soap.close();
 }

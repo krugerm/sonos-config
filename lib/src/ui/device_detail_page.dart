@@ -17,7 +17,9 @@ class DeviceDetailPage extends StatefulWidget {
 }
 
 class _DeviceDetailPageState extends State<DeviceDetailPage> {
+  // In-drag slider values (committed on change-end).
   double? _volume, _bass, _treble, _balance;
+  double? _subGain, _surround, _musicSurround, _height, _audioDelay;
 
   @override
   void initState() {
@@ -61,33 +63,23 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                   setState(() => _volume = null);
                 },
               ),
+              SwitchListTile(
+                title: const Text('Mute'),
+                value: s.muted,
+                onChanged: (v) => store.setMuted(device, v),
+              ),
               if (caps.hasBassTreble) ...[
-                _slider(
-                  label: 'Bass',
-                  value: _bass ?? s.bass.toDouble(),
-                  min: -10,
-                  max: 10,
-                  divisions: 20,
-                  display: _signed(_bass ?? s.bass.toDouble()),
-                  onChanged: (v) => setState(() => _bass = v),
-                  onChangeEnd: (v) {
-                    store.setBass(device, v.round());
-                    setState(() => _bass = null);
-                  },
-                ),
-                _slider(
-                  label: 'Treble',
-                  value: _treble ?? s.treble.toDouble(),
-                  min: -10,
-                  max: 10,
-                  divisions: 20,
-                  display: _signed(_treble ?? s.treble.toDouble()),
-                  onChanged: (v) => setState(() => _treble = v),
-                  onChangeEnd: (v) {
-                    store.setTreble(device, v.round());
-                    setState(() => _treble = null);
-                  },
-                ),
+                _levelSlider(
+                    'Bass', _bass, s.bass, (v) => setState(() => _bass = v),
+                    (v) {
+                  store.setBass(device, v);
+                  setState(() => _bass = null);
+                }),
+                _levelSlider('Treble', _treble, s.treble,
+                    (v) => setState(() => _treble = v), (v) {
+                  store.setTreble(device, v);
+                  setState(() => _treble = null);
+                }),
               ],
               if (caps.canStereoPair)
                 _slider(
@@ -108,7 +100,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                   value: s.loudness,
                   onChanged: (v) => store.setLoudness(device, v),
                 ),
-              if (caps.hasNightMode) ...[
+              if (caps.isHomeTheater) ...[
                 const Eyebrow('Home theater'),
                 SwitchListTile(
                   title: const Text('Night mode'),
@@ -121,8 +113,97 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                   value: s.speechEnhancement,
                   onChanged: (v) => store.setSpeechEnhancement(device, v),
                 ),
+                _slider(
+                  label: 'Sub level',
+                  value: _subGain ?? s.subGain.toDouble(),
+                  min: -15,
+                  max: 15,
+                  divisions: 30,
+                  display: _signed(_subGain ?? s.subGain.toDouble()),
+                  onChanged: (v) => setState(() => _subGain = v),
+                  onChangeEnd: (v) {
+                    store.setSubGain(device, v.round());
+                    setState(() => _subGain = null);
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('Sub phase inverted'),
+                  value: s.subPolarityInverted,
+                  onChanged: (v) => store.setSubPolarityInverted(device, v),
+                ),
+                SwitchListTile(
+                  title: const Text('Surround speakers'),
+                  value: s.surroundEnabled,
+                  onChanged: (v) => store.setSurroundEnabled(device, v),
+                ),
+                _slider(
+                  label: 'Surround (TV)',
+                  value: _surround ?? s.surroundLevel.toDouble(),
+                  min: -15,
+                  max: 15,
+                  divisions: 30,
+                  display: _signed(_surround ?? s.surroundLevel.toDouble()),
+                  onChanged: (v) => setState(() => _surround = v),
+                  onChangeEnd: (v) {
+                    store.setSurroundLevel(device, v.round());
+                    setState(() => _surround = null);
+                  },
+                ),
+                _slider(
+                  label: 'Surround (music)',
+                  value: _musicSurround ?? s.musicSurroundLevel.toDouble(),
+                  min: -15,
+                  max: 15,
+                  divisions: 30,
+                  display: _signed(
+                      _musicSurround ?? s.musicSurroundLevel.toDouble()),
+                  onChanged: (v) => setState(() => _musicSurround = v),
+                  onChangeEnd: (v) {
+                    store.setMusicSurroundLevel(device, v.round());
+                    setState(() => _musicSurround = null);
+                  },
+                ),
+                _slider(
+                  label: 'Height',
+                  value: _height ?? s.heightLevel.toDouble(),
+                  min: -10,
+                  max: 10,
+                  divisions: 20,
+                  display: _signed(_height ?? s.heightLevel.toDouble()),
+                  onChanged: (v) => setState(() => _height = v),
+                  onChangeEnd: (v) {
+                    store.setHeightLevel(device, v.round());
+                    setState(() => _height = null);
+                  },
+                ),
+                _slider(
+                  label: 'Audio delay',
+                  value: _audioDelay ?? s.audioDelay.toDouble(),
+                  min: 0,
+                  max: 5,
+                  divisions: 5,
+                  display:
+                      '${(_audioDelay ?? s.audioDelay.toDouble()).round()}',
+                  onChanged: (v) => setState(() => _audioDelay = v),
+                  onChangeEnd: (v) {
+                    store.setAudioDelay(device, v.round());
+                    setState(() => _audioDelay = null);
+                  },
+                ),
               ],
               const Eyebrow('Device'),
+              if (caps.hasTrueplay)
+                SwitchListTile(
+                  title: const Text('Trueplay tuning'),
+                  value: s.trueplay,
+                  onChanged: (v) => store.setTrueplay(device, v),
+                ),
+              if (caps.hasFixedOutput)
+                SwitchListTile(
+                  title: const Text('Fixed line-out level'),
+                  value: s.outputFixed,
+                  onChanged: (v) => store.setOutputFixed(device, v),
+                ),
               if (caps.hasLed)
                 SwitchListTile(
                   title: const Text('Status light'),
@@ -144,6 +225,20 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
 
   String _signed(double v) => v.round() > 0 ? '+${v.round()}' : '${v.round()}';
 
+  Widget _levelSlider(String label, double? drag, int value,
+      ValueChanged<double> onChanged, ValueChanged<int> commit) {
+    return _slider(
+      label: label,
+      value: drag ?? value.toDouble(),
+      min: -10,
+      max: 10,
+      divisions: 20,
+      display: _signed(drag ?? value.toDouble()),
+      onChanged: onChanged,
+      onChangeEnd: (v) => commit(v.round()),
+    );
+  }
+
   Widget _slider({
     required String label,
     required double value,
@@ -158,7 +253,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
       padding: const EdgeInsets.fromLTRB(20, 0, 12, 0),
       child: Row(
         children: [
-          SizedBox(width: 84, child: Text(label)),
+          SizedBox(width: 110, child: Text(label)),
           Expanded(
             child: Slider(
               value: value.clamp(min, max),

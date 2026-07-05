@@ -31,19 +31,19 @@ successfully; `flutter analyze` clean; 48 tests pass.
       push/PR.
 
 ### Docs
-- [ ] **README for newcomers** — screenshots/GIF of the system map + a config
-      flow, and a short troubleshooting section (nothing found → same-subnet /
-      multicast). (Per-platform install steps, model caveats, and the disclaimer
-      are already in.)
+- [~] **README for newcomers** — logo, badges, disclaimer, install steps,
+      troubleshooting, and a Screenshots section are in. **Real screenshots still
+      needed** (a maintainer must add them — automated capture is blocked by macOS
+      Screen Recording permission in this environment).
 
 ## P1 — Soon after launch
 
 ### Contributor experience
 - [x] `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1),
       `SECURITY.md`, issue + PR templates, `CHANGELOG.md`.
-- [ ] Dependabot/Renovate config (`flutter pub get` reports ~10 out-of-date
-      packages; `network_info_plus` also triggers a Flutter "Built-in Kotlin"
-      deprecation warning on Android — worth tracking an upgrade).
+- [x] Dependabot config (pub, github-actions, gradle). Note: `network_info_plus`
+      still triggers a Flutter "Built-in Kotlin" deprecation warning on Android —
+      worth tracking an upgrade when one ships.
 
 ### Round out the config feature set (spec'd, API done, UI pending)
 - [ ] **Stereo-pair UI.** `CreateStereoPairAction`/`SeparateStereoPairAction`
@@ -57,11 +57,16 @@ successfully; `flutter analyze` clean; 48 tests pass.
       navigation-based).
 
 ### Visual design & usability
-- [ ] **Improve the UI styling.** The screens are functional but use default
-      Material 3 styling. Give the app a cohesive, intentional look: a considered
-      color scheme (tie it to the cyan→green icon), typographic hierarchy,
-      polished cards/list items, consistent iconography and spacing, and nicer
-      empty/loading/error states.
+- [x] **UI styling.** Cohesive "instrument-panel" identity tied to the icon:
+      custom cyan→green light/dark themes, monospace technical data, a signature
+      bonded-role chip, card-based system map, Eyebrow section headers, and
+      polished empty/loading/error states. (Visual sign-off pending a manual
+      screenshot — capture is blocked in this environment.)
+- [ ] **Product images per model, in the matching colour.** Show a small
+      illustration for each Sonos model (Beam, One SL, Sub, …) in its actual
+      finish (black/white). Use **original illustrations or simple vector
+      silhouettes**, not Sonos's copyrighted product photos, keyed off
+      `Device.model` + finish.
 
 ### Robustness
 - [x] **Ethernet discovery.** `network_info_plus.getWifiIP()` is null on a wired

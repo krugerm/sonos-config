@@ -1,7 +1,13 @@
-# Sonos Config
+<p align="center">
+  <img src="assets/icon/icon_macos.png" width="112" alt="Sonos Config icon">
+</p>
 
-[![CI](https://github.com/krugerm/personal-sonos/actions/workflows/ci.yml/badge.svg)](https://github.com/krugerm/personal-sonos/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<h1 align="center">Sonos Config</h1>
+
+<p align="center">
+  <a href="https://github.com/krugerm/personal-sonos/actions/workflows/ci.yml"><img src="https://github.com/krugerm/personal-sonos/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+</p>
 
 A small, self-contained Flutter app to **discover and configure every Sonos
 speaker on your local network** — no Sonos account, no cloud, no login. It talks
@@ -36,6 +42,14 @@ Spotify or wherever you like; use this to wire the system up.
   **undo** where a clean inverse exists. It never claims success it didn't see.
 - **Capability-aware UI** — controls appear only when the device supports them
   (a Beam offers night mode; a One SL offers stereo pairing; a Sub neither).
+
+## Screenshots
+
+> _Screenshots welcome — a PR adding them is a great first contribution._ The app
+> has three screens: the **system map** (rooms, each showing its bonded devices
+> as role chips), **room detail** (rename, bond/unbond a Sub, jump to a device),
+> and **device detail** (diagnostics plus capability-gated audio, EQ, and device
+> settings). Run `flutter run -d macos` to see them.
 
 ## How it works
 

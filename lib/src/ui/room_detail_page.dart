@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../actions/config_action.dart';
+import '../actions/group_actions.dart';
 import '../actions/rename_action.dart';
 import '../actions/topology_actions.dart';
 import '../models/bond_role.dart';
+import '../models/household.dart';
 import '../models/room.dart';
 import '../state/household_store.dart';
 import 'action_runner.dart';
@@ -12,7 +15,7 @@ import 'theme.dart';
 import 'ui_util.dart';
 import 'widgets.dart';
 
-/// Configuration for a single room: rename, Sub bonding, and its devices.
+/// Configuration for a single room: rename, grouping, bonding, and its devices.
 class RoomDetailPage extends StatelessWidget {
   const RoomDetailPage({super.key, required this.coordinatorUuid});
 
@@ -22,9 +25,10 @@ class RoomDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<HouseholdStore>(
       builder: (context, store, _) {
-        final room = store.household?.visibleRooms
+        final household = store.household;
+        final room = household?.visibleRooms
             .firstWhereOrNull((r) => r.coordinator.uuid == coordinatorUuid);
-        if (room == null) {
+        if (household == null || room == null) {
           return const Scaffold(
             body: Center(child: Text('This room is no longer available.')),
           );
@@ -42,7 +46,9 @@ class RoomDetailPage extends StatelessWidget {
                 subtitle: Text(room.name),
                 onTap: () => _rename(context, room),
               ),
-              ..._subSection(context, store, room),
+              ..._groupingSection(context, household, room),
+              ..._homeTheaterSection(context, household, room),
+              ..._stereoPairSection(context, household, room),
               const Eyebrow('Devices'),
               for (final d in room.devices)
                 ListTile(
@@ -73,58 +79,271 @@ class RoomDetailPage extends StatelessWidget {
     );
   }
 
-  List<Widget> _subSection(
-      BuildContext context, HouseholdStore store, Room room) {
-    if (!room.coordinator.capabilities.canBondSub) return const [];
+  // ---- Grouping (party mode) ----------------------------------------------
 
-    final bondedSub =
-        room.satellites.firstWhereOrNull((d) => d.bondRole == BondRole.sub);
-    if (bondedSub != null) {
-      return [
+  List<Widget> _groupingSection(
+      BuildContext context, Household household, Room room) {
+    final group =
+        household.groups.firstWhereOrNull((g) => g.rooms.any((r) => r == room));
+    final partners = group == null
+        ? const <Room>[]
+        : group.rooms.where((r) => r != room).toList();
+    final others = household.visibleRooms
+        .where((r) => r != room && !partners.contains(r))
+        .toList();
+
+    return [
+      const Eyebrow('Grouping'),
+      if (partners.isEmpty)
+        const ListTile(
+          leading: Icon(Icons.link_off),
+          title: Text('Not grouped'),
+          subtitle: Text('Playing on its own'),
+        )
+      else ...[
+        for (final p in partners)
+          ListTile(
+            leading: const Icon(Icons.link),
+            title: Text('Grouped with ${p.name}'),
+          ),
         ListTile(
-          leading: const Icon(Icons.speaker),
-          title: const Text('Sub'),
-          subtitle: const Text('Bonded as subwoofer'),
+          leading: const Icon(Icons.group_remove),
+          title: const Text('Ungroup this room'),
           trailing: OutlinedButton(
             onPressed: () => runConfigAction(
               context,
-              UnbondSubAction(
-                primaryHost: room.coordinator.host,
-                primaryUuid: room.coordinator.uuid,
-                subUuid: bondedSub.uuid,
-                roomName: room.name,
+              LeaveGroupAction(
+                memberHost: room.coordinator.host,
+                memberUuid: room.coordinator.uuid,
+                memberRoomName: room.name,
               ),
             ),
-            child: const Text('Unbond'),
+            child: const Text('Ungroup'),
           ),
         ),
-      ];
-    }
-
-    final availableSub = store.household?.unbondedInvisibleDevices
-        .firstWhereOrNull((d) => (d.model ?? '').toLowerCase().contains('sub'));
-    if (availableSub != null) {
-      return [
+      ],
+      if (others.isNotEmpty)
         ListTile(
+          leading: const Icon(Icons.group_add),
+          title: const Text('Group with…'),
+          onTap: () => _pickAndRun<Room>(
+            context,
+            title: 'Group with',
+            options: others,
+            labelOf: (r) => r.name,
+            actionOf: (target) => JoinGroupAction(
+              memberHost: room.coordinator.host,
+              memberUuid: room.coordinator.uuid,
+              memberRoomName: room.name,
+              coordinatorUuid: target.coordinator.uuid,
+              targetRoomName: target.name,
+            ),
+          ),
+        ),
+    ];
+  }
+
+  // ---- Home theater: Sub + surrounds --------------------------------------
+
+  List<Widget> _homeTheaterSection(
+      BuildContext context, Household household, Room room) {
+    if (!room.coordinator.capabilities.canBondSub) return const [];
+    final coord = room.coordinator;
+    final widgets = <Widget>[const Eyebrow('Home theater')];
+
+    // Sub
+    final bondedSub =
+        room.satellites.firstWhereOrNull((d) => d.bondRole == BondRole.sub);
+    if (bondedSub != null) {
+      widgets.add(ListTile(
+        leading: const Icon(Icons.speaker),
+        title: const Text('Sub'),
+        subtitle: const Text('Bonded as subwoofer'),
+        trailing: OutlinedButton(
+          onPressed: () => runConfigAction(
+              context,
+              UnbondSubAction(
+                  primaryHost: coord.host,
+                  primaryUuid: coord.uuid,
+                  subUuid: bondedSub.uuid,
+                  roomName: room.name)),
+          child: const Text('Unbond'),
+        ),
+      ));
+    } else {
+      final availableSub = household.unbondedInvisibleDevices.firstWhereOrNull(
+          (d) => (d.model ?? '').toLowerCase().contains('sub'));
+      if (availableSub != null) {
+        widgets.add(ListTile(
           leading: const Icon(Icons.add_circle_outline),
           title: Text('Bond ${availableSub.model ?? 'Sub'}'),
           subtitle: const Text('An unbonded Sub is available'),
           trailing: FilledButton(
             onPressed: () => runConfigAction(
-              context,
-              BondSubAction(
-                primaryHost: room.coordinator.host,
-                primaryUuid: room.coordinator.uuid,
-                subUuid: availableSub.uuid,
-                roomName: room.name,
-              ),
-            ),
+                context,
+                BondSubAction(
+                    primaryHost: coord.host,
+                    primaryUuid: coord.uuid,
+                    subUuid: availableSub.uuid,
+                    roomName: room.name)),
             child: const Text('Bond'),
+          ),
+        ));
+      }
+    }
+
+    // Surrounds
+    final surrounds = room.satellites
+        .where((d) =>
+            d.bondRole == BondRole.surroundLeft ||
+            d.bondRole == BondRole.surroundRight)
+        .toList();
+    for (final s in surrounds) {
+      final channel = s.bondRole == BondRole.surroundLeft ? 'LR' : 'RR';
+      widgets.add(ListTile(
+        leading: const Icon(Icons.surround_sound),
+        title: Text(s.model ?? 'Surround'),
+        subtitle: Text(roleLongLabel(s.bondRole)),
+        trailing: OutlinedButton(
+          onPressed: () => runConfigAction(
+              context,
+              RemoveSurroundAction(
+                  primaryHost: coord.host,
+                  primaryUuid: coord.uuid,
+                  satUuid: s.uuid,
+                  channel: channel,
+                  roomName: room.name,
+                  satName: s.model ?? 'Surround')),
+          child: const Text('Remove'),
+        ),
+      ));
+    }
+    if (surrounds.length < 2) {
+      final hasLeft = surrounds.any((d) => d.bondRole == BondRole.surroundLeft);
+      final channel = hasLeft ? 'RR' : 'LR';
+      final candidates = _standaloneSpeakers(household, room);
+      if (candidates.isNotEmpty) {
+        widgets.add(ListTile(
+          leading: const Icon(Icons.add_circle_outline),
+          title: Text('Add ${hasLeft ? 'right' : 'left'} surround…'),
+          onTap: () => _pickAndRun<Room>(
+            context,
+            title: 'Add surround',
+            options: candidates,
+            labelOf: (r) => r.name,
+            actionOf: (r) => AddSurroundAction(
+              primaryHost: coord.host,
+              primaryUuid: coord.uuid,
+              satUuid: r.coordinator.uuid,
+              channel: channel,
+              roomName: room.name,
+              satName: r.coordinator.model ?? r.name,
+            ),
+          ),
+        ));
+      }
+    }
+    return widgets;
+  }
+
+  // ---- Stereo pairing -----------------------------------------------------
+
+  List<Widget> _stereoPairSection(
+      BuildContext context, Household household, Room room) {
+    final coord = room.coordinator;
+    final pairedRight = room.satellites.firstWhereOrNull((d) =>
+        d.bondRole == BondRole.stereoLeft ||
+        d.bondRole == BondRole.stereoRight);
+    if (pairedRight != null) {
+      return [
+        const Eyebrow('Stereo pair'),
+        ListTile(
+          leading: const Icon(Icons.hearing),
+          title: Text('Paired with ${pairedRight.model ?? 'speaker'}'),
+          trailing: OutlinedButton(
+            onPressed: () => runConfigAction(
+                context,
+                SeparateStereoPairAction(
+                    leftHost: coord.host,
+                    leftUuid: coord.uuid,
+                    rightUuid: pairedRight.uuid,
+                    leftName: coord.model ?? room.name,
+                    rightName: pairedRight.model ?? 'speaker')),
+            child: const Text('Split'),
           ),
         ),
       ];
     }
-    return const [];
+    if (!coord.capabilities.canStereoPair || room.satellites.isNotEmpty) {
+      return const [];
+    }
+    final candidates = _standaloneSpeakers(household, room);
+    if (candidates.isEmpty) return const [];
+    return [
+      const Eyebrow('Stereo pair'),
+      ListTile(
+        leading: const Icon(Icons.hearing),
+        title: const Text('Pair with…'),
+        subtitle: const Text('Combine two speakers into a left/right pair'),
+        onTap: () => _pickAndRun<Room>(
+          context,
+          title: 'Stereo-pair with',
+          options: candidates,
+          labelOf: (r) => r.name,
+          actionOf: (r) => CreateStereoPairAction(
+            leftHost: coord.host,
+            leftUuid: coord.uuid,
+            rightUuid: r.coordinator.uuid,
+            leftName: coord.model ?? room.name,
+            rightName: r.coordinator.model ?? r.name,
+          ),
+        ),
+      ),
+    ];
+  }
+
+  /// Visible single-speaker rooms that can be paired/bonded (excludes [room]).
+  List<Room> _standaloneSpeakers(Household household, Room room) =>
+      household.visibleRooms
+          .where((r) =>
+              r != room &&
+              r.satellites.isEmpty &&
+              r.coordinator.capabilities.canStereoPair)
+          .toList();
+
+  // ---- Helpers ------------------------------------------------------------
+
+  Future<void> _pickAndRun<T>(
+    BuildContext context, {
+    required String title,
+    required List<T> options,
+    required String Function(T) labelOf,
+    required ConfigAction Function(T) actionOf,
+  }) async {
+    final chosen = await showModalBottomSheet<T>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child:
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+            ),
+            for (final o in options)
+              ListTile(
+                title: Text(labelOf(o)),
+                onTap: () => Navigator.of(context).pop(o),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen == null || !context.mounted) return;
+    await runConfigAction(context, actionOf(chosen));
   }
 
   Future<void> _rename(BuildContext context, Room room) async {

@@ -191,3 +191,112 @@ class SeparateStereoPairAction extends ConfigAction {
         rightName: rightName,
       );
 }
+
+/// Bonds a standalone speaker into a home theater as a rear surround.
+/// [channel] is `LR` (left) or `RR` (right).
+class AddSurroundAction extends ConfigAction {
+  AddSurroundAction({
+    required this.primaryHost,
+    required this.primaryUuid,
+    required this.satUuid,
+    required this.channel,
+    required this.roomName,
+    required this.satName,
+  });
+
+  final String primaryHost;
+  final String primaryUuid;
+  final String satUuid;
+  final String channel; // LR | RR
+  final String roomName;
+  final String satName;
+
+  bool get _isLeft => channel.toUpperCase() == 'LR';
+
+  @override
+  String get title => 'Add $satName as ${_isLeft ? 'left' : 'right'} surround';
+
+  @override
+  List<ChangeLine> preview(Household household) => [
+        ChangeLine(
+            label: satName,
+            before: 'Standalone',
+            after: '${_isLeft ? 'Left' : 'Right'} surround of $roomName'),
+      ];
+
+  @override
+  bool get isReversible => true;
+
+  @override
+  Future<void> apply(SonosApi api) =>
+      api.addHtSatellite(primaryHost, '$primaryUuid:LF,RF;$satUuid:$channel');
+
+  @override
+  bool isSettled(Household after) {
+    final role = after.deviceByUuid(satUuid)?.bondRole;
+    return role == BondRole.surroundLeft || role == BondRole.surroundRight;
+  }
+
+  @override
+  ConfigAction inverse(Household household) => RemoveSurroundAction(
+        primaryHost: primaryHost,
+        primaryUuid: primaryUuid,
+        satUuid: satUuid,
+        channel: channel,
+        roomName: roomName,
+        satName: satName,
+      );
+}
+
+/// Unbonds a surround speaker from a home theater, returning it to standalone.
+class RemoveSurroundAction extends ConfigAction {
+  RemoveSurroundAction({
+    required this.primaryHost,
+    required this.primaryUuid,
+    required this.satUuid,
+    required this.channel,
+    required this.roomName,
+    required this.satName,
+  });
+
+  final String primaryHost;
+  final String primaryUuid;
+  final String satUuid;
+  final String channel;
+  final String roomName;
+  final String satName;
+
+  @override
+  String get title => 'Remove $satName surround';
+
+  @override
+  List<ChangeLine> preview(Household household) => [
+        ChangeLine(
+            label: satName,
+            before: 'Surround of $roomName',
+            after: 'Standalone'),
+      ];
+
+  @override
+  bool get isReversible => true;
+
+  @override
+  Future<void> apply(SonosApi api) =>
+      api.removeHtSatellite(primaryHost, satUuid);
+
+  @override
+  bool isSettled(Household after) {
+    final role = after.deviceByUuid(satUuid)?.bondRole;
+    return role != BondRole.surroundLeft && role != BondRole.surroundRight;
+  }
+
+  @override
+  ConfigAction inverse(Household household) => AddSurroundAction(
+        primaryHost: primaryHost,
+        primaryUuid: primaryUuid,
+        satUuid: satUuid,
+        channel: channel,
+        roomName: roomName,
+        satName: satName,
+      );
+}

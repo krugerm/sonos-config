@@ -39,4 +39,4 @@ First release as a Sonos discovery & configuration tool.
 - Topology parsing no longer surfaces a phantom room for an all-invisible group
   (a lone bonded Sub or bridge).
 
-[1.0.0]: https://github.com/krugerm/personal-sonos/releases/tag/v1.0.0
+[1.0.0]: https://github.com/krugerm/sonos-config/releases/tag/v1.0.0

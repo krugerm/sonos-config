@@ -5,7 +5,7 @@
 <h1 align="center">Sonos Config</h1>
 
 <p align="center">
-  <a href="https://github.com/krugerm/personal-sonos/actions/workflows/ci.yml"><img src="https://github.com/krugerm/personal-sonos/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/krugerm/sonos-config/actions/workflows/ci.yml"><img src="https://github.com/krugerm/sonos-config/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 </p>
 

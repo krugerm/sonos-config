@@ -4,7 +4,12 @@ import 'package:personal_sonos/src/ui/product_glyph.dart';
 void main() {
   group('productForm', () {
     test('home-theater bars are soundbars', () {
-      for (final m in ['Sonos Beam', 'Sonos Arc', 'Sonos Ray', 'Sonos Playbar']) {
+      for (final m in [
+        'Sonos Beam',
+        'Sonos Arc',
+        'Sonos Ray',
+        'Sonos Playbar'
+      ]) {
         expect(productForm(m), ProductForm.soundbar, reason: m);
       }
     });

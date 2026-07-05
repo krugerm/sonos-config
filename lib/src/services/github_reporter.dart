@@ -8,10 +8,14 @@ import 'diagnostics.dart';
 const kGithubRepo = 'krugerm/sonos-config';
 
 /// GitHub OAuth App client id for in-app auto-create (device flow). Client ids
-/// are **not** secrets and are safe to ship. Register an OAuth App with device
-/// flow enabled and paste its id here to enable path (B); leave empty to offer
-/// only the manual "attach on GitHub" flow (C).
-const kGithubClientId = String.fromEnvironment('GITHUB_CLIENT_ID');
+/// are **not** secrets and are safe to ship, so this ships with a default and
+/// path (B) works out of the box. Override at build time with
+/// `--dart-define=GITHUB_CLIENT_ID=...`; set it empty to offer only the manual
+/// "attach on GitHub" flow (C).
+const kGithubClientId = String.fromEnvironment(
+  'GITHUB_CLIENT_ID',
+  defaultValue: 'Ov23lizI7Z8VVJwSIaFW',
+);
 
 /// (C) A URL that opens a prefilled "device report" issue. The full capture is
 /// attached as a file by the user; only the short summary is prefilled (URLs

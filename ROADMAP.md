@@ -12,8 +12,6 @@ priority order.
 - **Prebuilt binaries & store distribution** — notarized macOS DMG, Android APK,
   TestFlight / Play internal track. The biggest lever for adoption: most Sonos
   owners can't `flutter run`.
-- **Tag-triggered CI build artifacts** — auto-build a signed APK + macOS build on
-  each release tag and attach them to the GitHub release.
 - **Desktop master–detail layout** — responsive two-pane (list + detail) on wide
   windows; collapses to today's push navigation on phones. UI-only refactor, no
   protocol changes. macOS is the primary target, so this matters.

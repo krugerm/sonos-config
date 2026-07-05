@@ -97,6 +97,10 @@ Numeric ranges and enums below are read from the SCPDs. `InstanceID` is always
 
 ## Surfacing plan
 
+**Status: Phases A, B, C implemented ✅ · Phases D, E parked 🛑 (maintainer
+decision).** Topology mutations (B) are unit-tested with fakes, not live-fired on
+a working home theater.
+
 Each item maps cleanly to the existing architecture: **instant, non-rebooting
 settings** become `DeviceSettingsStore` methods + `SonosApi` calls; **topology
 changes** become `ConfigAction`s (preview → apply → verify → undo). New actions
@@ -107,19 +111,19 @@ phases gate on: `hasSubTuning`, `hasSurroundTuning`, `isHomeTheater`,
 `hasIrControl`, `hasFixedOutput`, `hasTrueplay`, plus a role/service-derived
 `isCoordinator` for group-level controls.
 
-**Phase A — Finish per-device audio (`DeviceSettingsStore`, instant, low-risk).**
+**Phase A ✅ — Finish per-device audio (`DeviceSettingsStore`, instant, low-risk).**
 Per-speaker mute; Sub tuning (`SubGain`/`SubEnabled`/`SubPolarity`/`SubCrossover`);
 home-theater surround tuning (`SurroundEnable`/`SurroundLevel`/`MusicSurroundLevel`
 /`HeightChannelLevel`/`AudioDelay`); `SetOutputFixed`; Trueplay toggle. All
 capability-gated; probe `GetEQ` and hide unsupported types. *(Verify whether Sub/
 surround EQ targets the coordinator or the satellite host.)*
 
-**Phase B — Topology actions UI (`ConfigAction`, guided-safe).** Wire the existing
+**Phase B ✅ — Topology actions UI (`ConfigAction`, guided-safe).** Wire the existing
 stereo-pair and surround actions into the UI; add a grouping (party-mode) join/
 leave flow; add a room-icon picker. Capture real `GetZoneGroupState` fixtures for
 stereo-pair/surround to validate `isSettled`.
 
-**Phase C — Group audio (coordinator).** Room-level group volume + mute via
+**Phase C ✅ — Group audio (coordinator).** Room-level group volume + mute via
 `GroupRenderingControl`, shown on the room detail.
 
 **Phase D — Home theater / TV (`HTControl`). 🛑 DO NOT PROCEED** (maintainer

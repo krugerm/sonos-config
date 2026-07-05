@@ -96,4 +96,4 @@ successfully; `flutter analyze` clean; 48 tests pass.
 - [ ] Additional device settings: sub gain/polarity, surround level, room
       calibration read-outs (`RenderingControl#SetEQ` exposes more types).
 - [ ] Release automation (tag → build macOS/Android artifacts via CI).
-- [ ] Promote the design spec to a top-level `ARCHITECTURE.md`.
+- [x] Top-level `ARCHITECTURE.md` for contributors.

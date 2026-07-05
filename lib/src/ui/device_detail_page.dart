@@ -165,6 +165,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
               min: min,
               max: max,
               divisions: divisions,
+              label: '$label: $display',
               onChanged: onChanged,
               onChangeEnd: onChangeEnd,
             ),

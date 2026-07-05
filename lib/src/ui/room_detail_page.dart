@@ -8,6 +8,7 @@ import '../actions/topology_actions.dart';
 import '../models/bond_role.dart';
 import '../models/household.dart';
 import '../models/room.dart';
+import '../state/group_audio_store.dart';
 import '../state/household_store.dart';
 import 'action_runner.dart';
 import 'device_detail_page.dart';
@@ -46,6 +47,7 @@ class RoomDetailPage extends StatelessWidget {
                 subtitle: Text(room.name),
                 onTap: () => _rename(context, room),
               ),
+              _GroupAudioSection(host: room.coordinator.host),
               ..._groupingSection(context, household, room),
               ..._homeTheaterSection(context, household, room),
               ..._stereoPairSection(context, household, room),
@@ -386,4 +388,69 @@ class RoomDetailPage extends StatelessWidget {
         BondRole.surroundLeft || BondRole.surroundRight => Icons.surround_sound,
         _ => Icons.speaker,
       };
+}
+
+/// Group (party-mode) volume + mute for the room, loaded on demand.
+class _GroupAudioSection extends StatefulWidget {
+  const _GroupAudioSection({required this.host});
+
+  final String host;
+
+  @override
+  State<_GroupAudioSection> createState() => _GroupAudioSectionState();
+}
+
+class _GroupAudioSectionState extends State<_GroupAudioSection> {
+  double? _drag;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<GroupAudioStore>().load(widget.host);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = context.watch<GroupAudioStore>();
+    final value = (_drag ?? store.volume.toDouble()).clamp(0.0, 100.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Eyebrow('Group audio'),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 12, 0),
+          child: Row(
+            children: [
+              const SizedBox(width: 96, child: Text('Volume')),
+              Expanded(
+                child: Slider(
+                  value: value,
+                  max: 100,
+                  label: 'Group volume: ${value.round()}',
+                  onChanged: (v) => setState(() => _drag = v),
+                  onChangeEnd: (v) {
+                    store.setVolume(v.round());
+                    setState(() => _drag = null);
+                  },
+                ),
+              ),
+              SizedBox(
+                width: 40,
+                child: Text('${value.round()}',
+                    textAlign: TextAlign.end,
+                    style: monoStyle(context, size: 12)),
+              ),
+            ],
+          ),
+        ),
+        SwitchListTile(
+          title: const Text('Mute'),
+          value: store.muted,
+          onChanged: store.setMuted,
+        ),
+      ],
+    );
+  }
 }

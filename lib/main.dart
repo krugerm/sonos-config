@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'src/services/sonos_api.dart';
 import 'src/state/action_executor.dart';
 import 'src/state/device_settings_store.dart';
+import 'src/state/group_audio_store.dart';
 import 'src/state/household_store.dart';
 import 'src/ui/system_map_page.dart';
 import 'src/ui/theme.dart';
@@ -24,6 +25,7 @@ class _SonosConfigAppState extends State<SonosConfigApp> {
   late final HouseholdStore _household;
   late final ActionExecutor _executor;
   late final DeviceSettingsStore _settings;
+  late final GroupAudioStore _groupAudio;
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _SonosConfigAppState extends State<SonosConfigApp> {
     _household = HouseholdStore(api: _api);
     _executor = ActionExecutor(api: _api, refreshHousehold: _household.refresh);
     _settings = DeviceSettingsStore(_api);
+    _groupAudio = GroupAudioStore(_api);
     _household.initialize();
   }
 
@@ -39,6 +42,7 @@ class _SonosConfigAppState extends State<SonosConfigApp> {
   void dispose() {
     _executor.dispose();
     _settings.dispose();
+    _groupAudio.dispose();
     _household.dispose(); // closes the shared SonosApi
     super.dispose();
   }
@@ -50,6 +54,7 @@ class _SonosConfigAppState extends State<SonosConfigApp> {
         ChangeNotifierProvider<HouseholdStore>.value(value: _household),
         ChangeNotifierProvider<ActionExecutor>.value(value: _executor),
         ChangeNotifierProvider<DeviceSettingsStore>.value(value: _settings),
+        ChangeNotifierProvider<GroupAudioStore>.value(value: _groupAudio),
       ],
       child: MaterialApp(
         title: 'Sonos Config',

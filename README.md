@@ -9,6 +9,13 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 </p>
 
+> [!NOTE]
+> **Why I built this.** The official Sonos app is slow and buggy — and it flatly
+> refused to bond my Sub to my Beam. It kept marching me through a five-minute
+> setup process, one prompt at a time, reporting success at the end… while
+> actually failing, over and over. So I built this. It bonds the Sub in
+> **under 3 seconds**, and it actually works. No warranties — use at your own risk.
+
 A small, self-contained Flutter app to **discover and configure every Sonos
 speaker on your local network** — no Sonos account, no cloud, no login. It talks
 directly to your speakers over their local UPnP/SOAP interface, the same

@@ -55,6 +55,30 @@ Spotify or wherever you like; use this to wire the system up.
   See [`docs/DEVICE_CAPABILITIES.md`](docs/DEVICE_CAPABILITIES.md) for the full
   per-device catalog of what's configurable.
 
+## Will this brick my speakers?
+
+**No — it can't brick them.** The app only speaks your speakers' own **local
+control interface** (the UPnP/SOAP endpoint on port 1400 that the official app
+and every third-party controller already use). It doesn't flash firmware, touch
+your Sonos account, or make any cloud change — there's nothing to corrupt that a
+factory reset couldn't undo anyway.
+
+What it actually does:
+
+- **Discovery is read-only** — it just lists what's already on your network.
+- **Every change is a documented config command** your speakers already accept
+  from any device on the LAN (bond a Sub, rename a room, set EQ…). Bonding or
+  unbonding makes the satellite **reboot and rejoin (~10–15s)** — that's normal
+  Sonos behaviour, not damage — and the app waits and **verifies** it settled.
+- **Changes are reversible** — unbond what you bonded, split what you paired,
+  rename back. The **official Sonos app can always re-run setup or factory-reset**
+  a speaker if you ever want a clean slate.
+
+That said, it's **unofficial, comes with no warranty, and is verified on limited
+hardware** (see [Devices known to work](#devices-known-to-work)) — you're
+changing your own equipment's configuration at your own risk. If a change doesn't
+settle, the app tells you plainly rather than pretending it worked.
+
 ## Screenshots
 
 <p align="center">
@@ -173,14 +197,25 @@ Tests inject fakes (`FakeSoapClient` records SOAP calls and returns canned
 responses; `SonosApi`/`SsdpDiscovery` are subclassed), so the whole discover →
 topology → enrich → action-verify flow is exercised without a real speaker.
 
-## Verified against real hardware
+## Devices known to work
 
-The read path (discovery, topology parsing, model enrichment, capability
-derivation, and settings reads) and Sub bonding (`AddHTSatellite`) have been run
-end-to-end against a real **Sonos Beam home theater** (Beam + two Sonos One SL
-surrounds + a Sub). It has **not** been exercised from CI — an isolated sandbox
-has no route to a home LAN — so run it at home on the same Wi-Fi as your system
-to configure your own speakers.
+Verified end-to-end against a real **Sonos Beam home theater**:
+
+| Device | Role | Status |
+| --- | --- | --- |
+| Sonos Beam | Home-theater primary | ✅ discovery, bonding, all settings |
+| Sonos One SL ×2 | Bonded surrounds (L / R) | ✅ |
+| Sonos Sub | Bonded subwoofer | ✅ bond / unbond, sub tuning |
+
+Other models *should* work — they expose the same local UPnP interface — but
+haven't been confirmed yet. **Running it on a different setup? Please report
+it** so we can grow this list: open a thread in
+[Discussions](https://github.com/krugerm/sonos-config/discussions) with your
+models, topology, and what worked (a `GetZoneGroupState` capture helps —
+anonymize any `RINCON_…` IDs first).
+
+> Note: the read/config paths aren't exercised in CI — an isolated runner has no
+> route to a home LAN — so testing happens on real speakers on the same Wi-Fi.
 
 ## Contributing
 

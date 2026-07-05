@@ -62,11 +62,17 @@ successfully; `flutter analyze` clean; 48 tests pass.
       bonded-role chip, card-based system map, Eyebrow section headers, and
       polished empty/loading/error states. (Visual sign-off pending a manual
       screenshot — capture is blocked in this environment.)
-- [ ] **Product images per model, in the matching colour.** Show a small
-      illustration for each Sonos model (Beam, One SL, Sub, …) in its actual
-      finish (black/white). Use **original illustrations or simple vector
-      silhouettes**, not Sonos's copyrighted product photos, keyed off
-      `Device.model` + finish.
+- [~] **Product images per model.** Done: original schematic line-art glyphs by
+      form factor (soundbar / bookshelf / sub / portable / amp), shown as the
+      card avatar and — on the room card — as role-tinted device thumbnails
+      (replacing the text pills). Open: the actual black/white **finish** isn't
+      exposed by the local API (`variant` is an ambiguous hardware-revision
+      field), so colour-matching would need a manual model→finish table.
+- [x] **Toasts** auto-dismiss (duration) and show a close button (global
+      SnackBar theme).
+- [x] **App name/icon on macOS.** `PRODUCT_NAME`/`CFBundleName` set to "Sonos
+      Config" (was `personal_sonos` in the running-apps list); the custom icon is
+      in the bundle — a stale macOS icon cache needs resetting to show it.
 
 ### Robustness
 - [x] **Ethernet discovery.** `network_info_plus.getWifiIP()` is null on a wired

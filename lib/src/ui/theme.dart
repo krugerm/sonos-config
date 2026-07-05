@@ -98,6 +98,7 @@ ThemeData appTheme(Brightness brightness) {
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
+      showCloseIcon: true, // manual dismiss; snackbars also auto-dismiss
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
   );

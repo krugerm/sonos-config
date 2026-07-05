@@ -49,7 +49,7 @@ String roleLongLabel(BondRole role) => switch (role) {
       BondRole.standalone => 'Standalone',
     };
 
-Color _roleColor(BondRole role, ColorScheme scheme) => switch (role) {
+Color roleColor(BondRole role, ColorScheme scheme) => switch (role) {
       BondRole.coordinator => scheme.primary,
       BondRole.sub => scheme.secondary,
       BondRole.surroundLeft ||
@@ -70,7 +70,7 @@ class RoleChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final color = _roleColor(role, scheme);
+    final color = roleColor(role, scheme);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(

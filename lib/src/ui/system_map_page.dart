@@ -5,6 +5,7 @@ import '../models/device.dart';
 import '../models/room.dart';
 import '../state/household_store.dart';
 import 'device_detail_page.dart';
+import 'product_glyph.dart';
 import 'room_detail_page.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -133,7 +134,7 @@ class _RoomCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const _Avatar(icon: Icons.meeting_room_outlined),
+                  _Avatar(model: room.coordinator.model),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -159,10 +160,10 @@ class _RoomCard extends StatelessWidget {
               if (room.satellites.isNotEmpty) ...[
                 const SizedBox(height: 14),
                 Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    for (final s in room.satellites) RoleChip(s.bondRole),
+                    for (final s in room.satellites) _DeviceThumb(device: s),
                   ],
                 ),
               ],
@@ -192,7 +193,7 @@ class _DeviceCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              _Avatar(icon: Icons.link_off, tint: scheme.secondary),
+              _Avatar(model: device.model, tint: scheme.secondary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -219,10 +220,39 @@ class _DeviceCard extends StatelessWidget {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.icon, this.tint});
+/// A small product-image thumbnail for a bonded device, tinted by its role,
+/// with the model + role in a tooltip.
+class _DeviceThumb extends StatelessWidget {
+  const _DeviceThumb({required this.device});
 
-  final IconData icon;
+  final Device device;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final color = roleColor(device.bondRole, scheme);
+    return Tooltip(
+      message:
+          '${device.model ?? 'Speaker'} · ${roleLongLabel(device.bondRole)}',
+      child: Container(
+        width: 46,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.30)),
+        ),
+        child:
+            Center(child: ProductGlyph(device.model, size: 24, color: color)),
+      ),
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.model, this.tint});
+
+  final String? model;
   final Color? tint;
 
   @override
@@ -235,7 +265,7 @@ class _Avatar extends StatelessWidget {
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(11),
       ),
-      child: Icon(icon, size: 20, color: color),
+      child: Center(child: ProductGlyph(model, size: 22, color: color)),
     );
   }
 }

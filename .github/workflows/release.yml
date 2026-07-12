@@ -30,7 +30,7 @@ jobs:
       # "install unknown apps"). A Play upload key is a separate, later step.
       - run: flutter build apk --release
       - run: cp build/app/outputs/flutter-apk/app-release.apk sonos-config.apk
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sonos-config-android
           path: sonos-config.apk
@@ -57,7 +57,7 @@ jobs:
       - run: flutter build macos --release
       - name: Zip the app
         run: ditto -c -k --keepParent "build/macos/Build/Products/Release/Sonos Config.app" sonos-config-macos.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sonos-config-macos
           path: sonos-config-macos.zip
@@ -87,7 +87,7 @@ jobs:
           mkdir -p Payload
           cp -R "build/ios/iphoneos/Runner.app" Payload/
           zip -r -q sonos-config-ios-unsigned.ipa Payload
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sonos-config-ios
           path: sonos-config-ios-unsigned.ipa

@@ -23,7 +23,7 @@ dependencies:
   # Used to learn the device's own Wi-Fi IP/subnet so we can fall back to a
   # unicast /24 scan when the network drops SSDP multicast (common on
   # enterprise / mesh Wi-Fi).
-  network_info_plus: ^6.1.1
+  network_info_plus: ^7.0.0
 
   cupertino_icons: ^1.0.8
   share_plus: ^12.0.2
